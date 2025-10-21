@@ -31,7 +31,7 @@ services:
 
   app:
     image: djmaldonado19/parkcontrol-backend:${VERSION:-latest}
-    container_name: _backend
+    container_name: parkcontrol_backend
     restart: always
     depends_on:
       - mariadb
