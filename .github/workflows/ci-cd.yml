@@ -121,6 +121,7 @@ jobs:
             echo 'AZURE_STORAGE_CONTAINER_PLATE_CHANGES=documentos-cambios' >> .env &&
             echo 'REDIS_HOST=redis' >> .env &&
             echo 'REDIS_PORT=6379' >> .env &&
+            echo 'REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}' >> .env &&
             echo 'FILE_UPLOAD_PATH=/app/uploads' >> .env &&
             echo 'LOG_LEVEL_APP=INFO' >> .env &&
             echo 'LOG_LEVEL_SECURITY=WARN' >> .env &&
