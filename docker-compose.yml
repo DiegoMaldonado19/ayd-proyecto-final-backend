@@ -21,11 +21,16 @@ services:
     image: redis:7-alpine
     container_name: redis
     restart: always
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
     networks:
       - parkcontrol_network
 
@@ -37,29 +42,34 @@ services:
       - mariadb
       - redis
     environment:
-      DB_URL: jdbc:mariadb://mariadb:3306/parkcontrol_db
-      DB_USER: ${SPRING_DATASOURCE_USERNAME}
-      DB_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/parkcontrol_db
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.mariadb.jdbc.Driver
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: 3600000
-      JWT_REFRESH_EXPIRATION: 86400000
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: 587
-      MAIL_USERNAME: dmaldonado1920@gmail.com
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400000}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-dmaldonado1920@gmail.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      FILE_UPLOAD_PATH: /app/uploads
-      LOG_LEVEL_APP: INFO
-      LOG_LEVEL_SECURITY: WARN
-      LOG_LEVEL_WEB: WARN
-      LOG_LEVEL_SQL: WARN
-      LOG_LEVEL_HIBERNATE: WARN
-      LOG_FILE_NAME: /app/logs/parkcontrol-application.log
+      AZURE_STORAGE_ACCOUNT_NAME: ${AZURE_STORAGE_ACCOUNT_NAME}
+      AZURE_STORAGE_ACCOUNT_KEY: ${AZURE_STORAGE_ACCOUNT_KEY}
+      AZURE_STORAGE_CONTAINER_INCIDENTS: ${AZURE_STORAGE_CONTAINER_INCIDENTS:-evidencias-incidentes}
+      AZURE_STORAGE_CONTAINER_PLATE_CHANGES: ${AZURE_STORAGE_CONTAINER_PLATE_CHANGES:-documentos-cambios}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      FILE_UPLOAD_PATH: ${FILE_UPLOAD_PATH:-/app/uploads}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-INFO}
+      LOG_LEVEL_SECURITY: ${LOG_LEVEL_SECURITY:-WARN}
+      LOG_LEVEL_WEB: ${LOG_LEVEL_WEB:-WARN}
+      LOG_LEVEL_SQL: ${LOG_LEVEL_SQL:-WARN}
+      LOG_LEVEL_HIBERNATE: ${LOG_LEVEL_HIBERNATE:-WARN}
+      LOG_FILE_NAME: ${LOG_FILE_NAME:-/app/logs/parkcontrol-application.log}
+      MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
+      LOCKOUT_DURATION: ${LOCKOUT_DURATION:-30}
+      PASSWORD_RESET_EXPIRATION: ${PASSWORD_RESET_EXPIRATION:-900000}
     ports:
       - "8080:8080"
     volumes:

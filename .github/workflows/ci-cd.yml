@@ -115,6 +115,13 @@ jobs:
             echo 'MAIL_PORT=587' >> .env &&
             echo 'MAIL_USERNAME=dmaldonado1920@gmail.com' >> .env &&
             echo 'MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}' >> .env &&
+            echo 'AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}' >> .env &&
+            echo 'AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}' >> .env &&
+            echo 'AZURE_STORAGE_CONTAINER_INCIDENTS=evidencias-incidentes' >> .env &&
+            echo 'AZURE_STORAGE_CONTAINER_PLATE_CHANGES=documentos-cambios' >> .env &&
+            echo 'REDIS_HOST=redis' >> .env &&
+            echo 'REDIS_PORT=6379' >> .env &&
+            echo 'REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}' >> .env &&
             echo 'FILE_UPLOAD_PATH=/app/uploads' >> .env &&
             echo 'LOG_LEVEL_APP=INFO' >> .env &&
             echo 'LOG_LEVEL_SECURITY=WARN' >> .env &&
@@ -122,6 +129,9 @@ jobs:
             echo 'LOG_LEVEL_SQL=WARN' >> .env &&
             echo 'LOG_LEVEL_HIBERNATE=WARN' >> .env &&
             echo 'LOG_FILE_NAME=/app/logs/parkcontrol-application.log' >> .env &&
+            echo 'MAX_LOGIN_ATTEMPTS=5' >> .env &&
+            echo 'LOCKOUT_DURATION=30' >> .env &&
+            echo 'PASSWORD_RESET_EXPIRATION=900000' >> .env &&
             echo 'VERSION=latest' >> .env &&
             
             # Deploy
@@ -137,3 +147,4 @@ jobs:
         if: always()
         run: |
           docker system prune -f || true
+          echo "Cleaned up Docker resources"
