@@ -10,7 +10,7 @@ env:
   DOCKER_IMAGE: parkcontrol-backend
   DOCKER_USERNAME: djmaldonado19
   SERVER_IP: 172.190.44.206
-  SERVER_PATH: /home/azureuser/repos/ayd-backend
+  SERVER_PATH: /home/azureuser/ayd-proyecto-final-backend
 
 jobs:
   test:
