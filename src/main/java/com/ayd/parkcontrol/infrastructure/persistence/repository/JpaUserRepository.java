@@ -1,6 +1,8 @@
 package com.ayd.parkcontrol.infrastructure.persistence.repository;
 
 import com.ayd.parkcontrol.infrastructure.persistence.entity.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +18,12 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, Long id);
+
+    Page<UserEntity> findByRoleTypeId(Integer roleTypeId, Pageable pageable);
+
+    Page<UserEntity> findByIsActive(Boolean isActive, Pageable pageable);
 
     @Modifying
     @Query("UPDATE UserEntity u SET u.failedLoginAttempts = :attempts WHERE u.email = :email")
