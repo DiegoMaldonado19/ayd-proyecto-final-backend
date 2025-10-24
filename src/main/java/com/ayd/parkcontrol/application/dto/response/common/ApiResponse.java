@@ -30,7 +30,7 @@ public class ApiResponse<T> {
     @JsonProperty("timestamp")
     private String timestamp;
 
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(T data, String message) {
         return ApiResponse.<T>builder()
                 .status("success")
                 .message(message)
@@ -39,8 +39,21 @@ public class ApiResponse<T> {
                 .build();
     }
 
-    public static <T> ApiResponse<T> success(String message) {
-        return success(message, null);
+    public static <T> ApiResponse<T> success(T data) {
+        return ApiResponse.<T>builder()
+                .status("success")
+                .message("Operation completed successfully")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now().toString())
+                .build();
+    }
+
+    public static ApiResponse<Void> success(String message) {
+        return ApiResponse.<Void>builder()
+                .status("success")
+                .message(message)
+                .timestamp(java.time.LocalDateTime.now().toString())
+                .build();
     }
 
     public static <T> ApiResponse<T> error(String message) {
