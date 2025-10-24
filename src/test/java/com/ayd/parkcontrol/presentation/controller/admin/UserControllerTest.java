@@ -112,7 +112,7 @@ class UserControllerTest {
                 when(listUsersUseCase.execute(anyInt(), anyInt(), anyString(), anyString()))
                                 .thenReturn(pageResponse);
 
-                mockMvc.perform(get("/api/v1/users")
+                mockMvc.perform(get("/users")
                                 .param("page", "0")
                                 .param("size", "20")
                                 .param("sortBy", "createdAt")
@@ -129,7 +129,7 @@ class UserControllerTest {
                 when(createUserUseCase.execute(any(CreateUserRequest.class)))
                                 .thenReturn(mockUserResponse);
 
-                mockMvc.perform(post("/api/v1/users")
+                mockMvc.perform(post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createUserRequest))
                                 .with(csrf()))
@@ -145,7 +145,7 @@ class UserControllerTest {
                 when(createUserUseCase.execute(any(CreateUserRequest.class)))
                                 .thenThrow(new DuplicateEmailException("test@parkcontrol.com"));
 
-                mockMvc.perform(post("/api/v1/users")
+                mockMvc.perform(post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(createUserRequest))
@@ -165,7 +165,7 @@ class UserControllerTest {
                                 .role_type_id(2)
                                 .build();
 
-                mockMvc.perform(post("/api/v1/users")
+                mockMvc.perform(post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequest))
                                 .with(csrf()))
@@ -177,7 +177,7 @@ class UserControllerTest {
         void getUser_shouldReturnUser_whenUserExists() throws Exception {
                 when(getUserUseCase.execute(1L)).thenReturn(mockUserResponse);
 
-                mockMvc.perform(get("/api/v1/users/1")
+                mockMvc.perform(get("/users/1")
                                 .with(csrf()))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("success"))
@@ -191,7 +191,7 @@ class UserControllerTest {
                 when(getUserUseCase.execute(999L))
                                 .thenThrow(new UserNotFoundException(999L));
 
-                mockMvc.perform(get("/api/v1/users/999")
+                mockMvc.perform(get("/users/999")
                                 .accept(MediaType.APPLICATION_JSON)
                                 .with(csrf()))
                                 .andExpect(status().isNotFound())
@@ -217,7 +217,7 @@ class UserControllerTest {
                 when(updateUserUseCase.execute(any(Long.class), any(UpdateUserRequest.class)))
                                 .thenReturn(updatedResponse);
 
-                mockMvc.perform(put("/api/v1/users/1")
+                mockMvc.perform(put("/users/1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(updateRequest))
                                 .with(csrf()))
@@ -230,7 +230,7 @@ class UserControllerTest {
         @Test
         @WithMockUser(roles = "Administrador")
         void deleteUser_shouldReturnSuccess_whenUserExists() throws Exception {
-                mockMvc.perform(delete("/api/v1/users/1")
+                mockMvc.perform(delete("/users/1")
                                 .with(csrf()))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("success"))
@@ -255,7 +255,7 @@ class UserControllerTest {
                 when(updateUserStatusUseCase.execute(any(Long.class), any(UpdateUserStatusRequest.class)))
                                 .thenReturn(updatedResponse);
 
-                mockMvc.perform(patch("/api/v1/users/1/status")
+                mockMvc.perform(patch("/users/1/status")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(statusRequest))
                                 .with(csrf()))
@@ -266,7 +266,7 @@ class UserControllerTest {
 
         @Test
         void listUsers_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
-                mockMvc.perform(get("/api/v1/users")
+                mockMvc.perform(get("/users")
                                 .with(csrf()))
                                 .andExpect(status().isUnauthorized());
         }
@@ -274,7 +274,7 @@ class UserControllerTest {
         @Test
         @WithMockUser(roles = "Cliente")
         void listUsers_shouldReturnForbidden_whenInsufficientPermissions() throws Exception {
-                mockMvc.perform(get("/api/v1/users")
+                mockMvc.perform(get("/users")
                                 .with(csrf()))
                                 .andExpect(status().isForbidden());
         }
@@ -301,7 +301,7 @@ class UserControllerTest {
                                 .thenReturn(pageResponse);
 
                 // When & Then
-                mockMvc.perform(get("/api/v1/users/by-role/{roleId}", roleId)
+                mockMvc.perform(get("/users/by-role/{roleId}", roleId)
                                 .param("page", "0")
                                 .param("size", "20")
                                 .param("sortBy", "createdAt")
@@ -334,7 +334,7 @@ class UserControllerTest {
                                 .thenReturn(pageResponse);
 
                 // When & Then
-                mockMvc.perform(get("/api/v1/users/by-status")
+                mockMvc.perform(get("/users/by-status")
                                 .param("isActive", "true")
                                 .param("page", "0")
                                 .param("size", "20")
@@ -367,7 +367,7 @@ class UserControllerTest {
                                 .thenReturn(pageResponse);
 
                 // When & Then
-                mockMvc.perform(get("/api/v1/users/by-status")
+                mockMvc.perform(get("/users/by-status")
                                 .param("isActive", "false")
                                 .param("page", "0")
                                 .param("size", "20")
@@ -381,7 +381,7 @@ class UserControllerTest {
 
         @Test
         void listUsersByRole_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
-                mockMvc.perform(get("/api/v1/users/by-role/1")
+                mockMvc.perform(get("/users/by-role/1")
                                 .with(csrf()))
                                 .andExpect(status().isUnauthorized());
         }
@@ -389,14 +389,14 @@ class UserControllerTest {
         @Test
         @WithMockUser(roles = "Cliente")
         void listUsersByRole_shouldReturnForbidden_whenInsufficientPermissions() throws Exception {
-                mockMvc.perform(get("/api/v1/users/by-role/1")
+                mockMvc.perform(get("/users/by-role/1")
                                 .with(csrf()))
                                 .andExpect(status().isForbidden());
         }
 
         @Test
         void listUsersByStatus_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
-                mockMvc.perform(get("/api/v1/users/by-status")
+                mockMvc.perform(get("/users/by-status")
                                 .param("isActive", "true")
                                 .with(csrf()))
                                 .andExpect(status().isUnauthorized());
@@ -405,7 +405,7 @@ class UserControllerTest {
         @Test
         @WithMockUser(roles = "Cliente")
         void listUsersByStatus_shouldReturnForbidden_whenInsufficientPermissions() throws Exception {
-                mockMvc.perform(get("/api/v1/users/by-status")
+                mockMvc.perform(get("/users/by-status")
                                 .param("isActive", "true")
                                 .with(csrf()))
                                 .andExpect(status().isForbidden());

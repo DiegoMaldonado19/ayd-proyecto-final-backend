@@ -67,7 +67,7 @@ class RoleControllerTest {
     void listRoles_shouldReturnAllRoles() throws Exception {
         when(listRolesUseCase.execute()).thenReturn(mockRoles);
 
-        mockMvc.perform(get("/api/v1/roles")
+        mockMvc.perform(get("/roles")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf()))
                 .andExpect(status().isOk())
@@ -82,7 +82,7 @@ class RoleControllerTest {
     void getRole_shouldReturnRole_whenRoleExists() throws Exception {
         when(getRoleUseCase.execute(1)).thenReturn(mockRoleResponse);
 
-        mockMvc.perform(get("/api/v1/roles/1")
+        mockMvc.perform(get("/roles/1")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf()))
                 .andExpect(status().isOk())
@@ -97,7 +97,7 @@ class RoleControllerTest {
         when(getRoleUseCase.execute(999))
                 .thenThrow(new RoleNotFoundException(999));
 
-        mockMvc.perform(get("/api/v1/roles/999")
+        mockMvc.perform(get("/roles/999")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf()))
                 .andExpect(status().isNotFound())
@@ -109,7 +109,7 @@ class RoleControllerTest {
     void getRolePermissions_shouldReturnRoleWithPermissions() throws Exception {
         when(getRoleUseCase.execute(1)).thenReturn(mockRoleResponse);
 
-        mockMvc.perform(get("/api/v1/roles/1/permissions")
+        mockMvc.perform(get("/roles/1/permissions")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf()))
                 .andExpect(status().isOk())
@@ -119,7 +119,7 @@ class RoleControllerTest {
 
     @Test
     void listRoles_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
-        mockMvc.perform(get("/api/v1/roles")
+        mockMvc.perform(get("/roles")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
@@ -127,7 +127,7 @@ class RoleControllerTest {
     @Test
     @WithMockUser(roles = "Empleado")
     void listRoles_shouldReturnForbidden_whenNotAuthorized() throws Exception {
-        mockMvc.perform(get("/api/v1/roles")
+        mockMvc.perform(get("/roles")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(csrf()))
                 .andExpect(status().isForbidden());
