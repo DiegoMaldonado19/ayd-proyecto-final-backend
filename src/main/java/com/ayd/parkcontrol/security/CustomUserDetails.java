@@ -1,5 +1,6 @@
 package com.ayd.parkcontrol.security;
 
+import com.ayd.parkcontrol.domain.model.user.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,37 +12,30 @@ import java.util.Collections;
 
 /**
  * Custom UserDetails implementation
- * This class wraps your User entity and provides Spring Security integration
- * 
- * TODO: Update this class when you create your User entity
+ * This class wraps the User entity and provides Spring Security integration
  */
 @RequiredArgsConstructor
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    // TODO: Replace these fields with your actual User entity
-    private final Integer userId;
-    private final String email;
-    private final String passwordHash;
-    private final String role;
-    private final boolean enabled;
-    private final boolean accountNonLocked;
+    private final User user;
+    private final String roleName;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Convert role to Spring Security format (ROLE_*)
-        String springRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+        String springRole = roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
         return Collections.singletonList(new SimpleGrantedAuthority(springRole));
     }
 
     @Override
     public String getPassword() {
-        return passwordHash;
+        return user.getPasswordHash();
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return user.getEmail();
     }
 
     @Override
@@ -51,23 +45,30 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return accountNonLocked;
+        return user.getIsActive() && user.getLockedUntil() == null;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return !user.getRequiresPasswordChange();
     }
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return user.getIsActive();
+    }
+
+    /**
+     * Helper method to get the user ID
+     */
+    public Long getUserId() {
+        return user.getId();
     }
 
     /**
      * Helper method to get the role without ROLE_ prefix
      */
-    public String getRoleName() {
-        return role.replace("ROLE_", "");
+    public String getRoleNameWithoutPrefix() {
+        return roleName.replace("ROLE_", "");
     }
 }

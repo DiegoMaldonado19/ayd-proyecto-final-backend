@@ -32,9 +32,11 @@ class RoleControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @SuppressWarnings("removal")
     @MockBean
     private ListRolesUseCase listRolesUseCase;
 
+    @SuppressWarnings("removal")
     @MockBean
     private GetRoleUseCase getRoleUseCase;
 
