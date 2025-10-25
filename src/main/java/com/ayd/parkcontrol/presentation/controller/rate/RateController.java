@@ -37,7 +37,7 @@ public class RateController {
     private final DeleteBranchRateUseCase deleteBranchRateUseCase;
 
     @GetMapping("/base")
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador', 'Back Office')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal', 'Operador Back Office')")
     @Operation(summary = "Get current base rate", description = "Retrieves the currently active base rate for the system.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Current rate retrieved successfully", content = @Content(schema = @Schema(implementation = RateBaseResponse.class))),
@@ -75,7 +75,7 @@ public class RateController {
     }
 
     @GetMapping("/branches")
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador', 'Back Office')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal', 'Operador Back Office')")
     @Operation(summary = "List all branch rates", description = "Retrieves the rates configured for all branches. Branches without specific rate use the base rate.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Branch rates retrieved successfully")
@@ -86,7 +86,7 @@ public class RateController {
     }
 
     @GetMapping("/branches/{branchId}")
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador', 'Back Office')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal', 'Operador Back Office')")
     @Operation(summary = "Get branch rate", description = "Retrieves the rate configured for a specific branch.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Branch rate retrieved successfully", content = @Content(schema = @Schema(implementation = RateBranchResponse.class))),

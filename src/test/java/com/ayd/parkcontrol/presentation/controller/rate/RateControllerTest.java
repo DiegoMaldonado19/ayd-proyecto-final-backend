@@ -111,7 +111,7 @@ class RateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "Operador")
+    @WithMockUser(roles = "Operador Sucursal")
     void getCurrentRate_shouldReturnCurrentRate_whenOperatorAuthenticated() throws Exception {
         when(getCurrentRateBaseUseCase.execute()).thenReturn(mockRateBaseResponse);
 
@@ -143,7 +143,7 @@ class RateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "Operador")
+    @WithMockUser(roles = "Operador Sucursal")
     void getRateHistory_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(get("/api/v1/rates/base/history")
                 .with(csrf()))
@@ -182,7 +182,7 @@ class RateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "Operador")
+    @WithMockUser(roles = "Operador Sucursal")
     void createBaseRate_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(post("/api/v1/rates/base")
                 .with(csrf())
@@ -257,7 +257,7 @@ class RateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "Operador")
+    @WithMockUser(roles = "Operador Sucursal")
     void updateBranchRate_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(put("/api/v1/rates/branches/1")
                 .with(csrf())
@@ -279,7 +279,7 @@ class RateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "Operador")
+    @WithMockUser(roles = "Operador Sucursal")
     void deleteBranchRate_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(delete("/api/v1/rates/branches/1")
                 .with(csrf()))
