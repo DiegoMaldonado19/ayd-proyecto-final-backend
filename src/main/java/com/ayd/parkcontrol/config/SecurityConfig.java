@@ -55,7 +55,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/info").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("ADMINISTRATOR")
+                        .requestMatchers("/actuator/**").hasRole("Administrador")
 
                         .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/password/change").authenticated()
@@ -63,26 +63,26 @@ public class SecurityConfig {
                         .requestMatchers("/auth/2fa/disable").authenticated()
                         .requestMatchers("/auth/profile").authenticated()
 
-                        .requestMatchers("/rates/**").hasRole("ADMINISTRATOR")
-                        .requestMatchers("/branches/**").hasRole("ADMINISTRATOR")
-                        .requestMatchers("/subscription-plans/**").hasRole("ADMINISTRATOR")
-                        .requestMatchers("/dashboard/**").hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR")
+                        .requestMatchers("/rates/**").hasRole("Administrador")
+                        .requestMatchers("/branches/**").hasRole("Administrador")
+                        .requestMatchers("/subscription-plans/**").hasRole("Administrador")
+                        .requestMatchers("/dashboard/**").hasAnyRole("Administrador", "Operador Sucursal")
 
                         .requestMatchers("/subscriptions/**").authenticated()
-                        .requestMatchers("/tickets/**").hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR")
-                        .requestMatchers("/occupancy/**").hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR")
+                        .requestMatchers("/tickets/**").hasAnyRole("Administrador", "Operador Sucursal")
+                        .requestMatchers("/occupancy/**").hasAnyRole("Administrador", "Operador Sucursal")
 
-                        .requestMatchers("/commerce/**").hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR", "COMMERCE")
-                        .requestMatchers("/settlements/**").hasAnyRole("ADMINISTRATOR", "COMMERCE")
+                        .requestMatchers("/commerce/**").hasAnyRole("Administrador", "Operador Sucursal")
+                        .requestMatchers("/settlements/**").hasRole("Administrador")
 
-                        .requestMatchers("/plate-changes/**").hasRole("BACKOFFICE_OPERATOR")
-                        .requestMatchers("/temporal-permits/**").hasRole("BACKOFFICE_OPERATOR")
+                        .requestMatchers("/plate-changes/**").hasRole("Operador Back Office")
+                        .requestMatchers("/temporal-permits/**").hasRole("Operador Back Office")
 
                         .requestMatchers("/incidents/**")
-                        .hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR", "BACKOFFICE_OPERATOR")
-                        .requestMatchers("/fleets/**").hasAnyRole("ADMINISTRATOR", "COMPANY")
+                        .hasAnyRole("Administrador", "Operador Sucursal", "Operador Back Office")
+                        .requestMatchers("/fleets/**").hasAnyRole("Administrador", "Administrador Flotilla")
 
-                        .requestMatchers("/reports/**").hasAnyRole("ADMINISTRATOR", "BRANCH_OPERATOR")
+                        .requestMatchers("/reports/**").hasAnyRole("Administrador", "Operador Sucursal")
 
                         .anyRequest().authenticated())
 
