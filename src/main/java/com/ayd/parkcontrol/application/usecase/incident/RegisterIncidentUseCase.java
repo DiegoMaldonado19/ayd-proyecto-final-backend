@@ -23,7 +23,6 @@ public class RegisterIncidentUseCase {
     private final JpaIncidentTypeRepository incidentTypeRepository;
     private final JpaBranchRepository branchRepository;
     private final JpaUserRepository userRepository;
-    private final JpaIncidentEvidenceRepository evidenceRepository;
     private final IncidentMapper mapper;
 
     @Transactional
