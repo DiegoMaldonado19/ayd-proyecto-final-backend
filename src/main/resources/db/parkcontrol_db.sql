@@ -192,6 +192,29 @@ CREATE TABLE subscription_plans (
     CONSTRAINT chk_annual_discount CHECK (annual_additional_discount_percentage >= 0 AND annual_additional_discount_percentage <= 100)
 ) ENGINE=InnoDB;
 
+CREATE TABLE vehicles (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    license_plate VARCHAR(20) NOT NULL,
+    vehicle_type_id INT NOT NULL,
+    brand VARCHAR(100),
+    model VARCHAR(100),
+    color VARCHAR(50),
+    year INT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_vehicles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_vehicles_vehicle_type FOREIGN KEY (vehicle_type_id) REFERENCES vehicle_types(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    UNIQUE KEY uk_user_plate (user_id, license_plate),
+    INDEX idx_user (user_id),
+    INDEX idx_plate (license_plate),
+    INDEX idx_active (is_active),
+    INDEX idx_user_active (user_id, is_active),
+    CONSTRAINT chk_vehicle_plate_format CHECK (license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
+    CONSTRAINT chk_vehicle_year CHECK (year IS NULL OR (year >= 1900 AND year <= YEAR(CURDATE()) + 1))
+) ENGINE=InnoDB;
+
 CREATE TABLE subscriptions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
