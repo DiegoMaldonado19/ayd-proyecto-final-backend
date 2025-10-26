@@ -4,9 +4,11 @@ import com.ayd.parkcontrol.application.dto.request.ticket.ApplyBenefitRequest;
 import com.ayd.parkcontrol.application.dto.response.ticket.BusinessFreeHoursResponse;
 import com.ayd.parkcontrol.domain.exception.BusinessRuleException;
 import com.ayd.parkcontrol.domain.exception.NotFoundException;
+import com.ayd.parkcontrol.infrastructure.persistence.entity.AffiliatedBusinessEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.BusinessFreeHoursEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.TicketEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.TicketStatusTypeEntity;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaAffiliatedBusinessRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaBusinessFreeHoursRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaTicketRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaTicketStatusTypeRepository;
@@ -26,6 +28,7 @@ public class ApplyCommerceBenefitUseCase {
     private final JpaTicketRepository ticketRepository;
     private final JpaBusinessFreeHoursRepository businessFreeHoursRepository;
     private final JpaTicketStatusTypeRepository ticketStatusTypeRepository;
+    private final JpaAffiliatedBusinessRepository affiliatedBusinessRepository;
 
     @Transactional
     public BusinessFreeHoursResponse execute(Long ticketId, ApplyBenefitRequest request) {
@@ -48,7 +51,12 @@ public class ApplyCommerceBenefitUseCase {
             throw new BusinessRuleException("Granted hours must be greater than zero");
         }
 
-        // 4. Crear registro de horas gratis
+        // 4. Obtener información del negocio afiliado
+        AffiliatedBusinessEntity business = affiliatedBusinessRepository.findById(request.getBusinessId())
+                .orElseThrow(() -> new NotFoundException(
+                        "Affiliated business not found with ID: " + request.getBusinessId()));
+
+        // 5. Crear registro de horas gratis
         BusinessFreeHoursEntity freeHours = BusinessFreeHoursEntity.builder()
                 .ticketId(ticketId)
                 .businessId(request.getBusinessId())
@@ -60,14 +68,14 @@ public class ApplyCommerceBenefitUseCase {
 
         BusinessFreeHoursEntity saved = businessFreeHoursRepository.save(freeHours);
 
-        log.info("Benefit applied successfully. Free hours ID: {}, Hours: {}",
-                saved.getId(), saved.getGrantedHours());
+        log.info("Benefit applied successfully. Free hours ID: {}, Hours: {}, Business: {}",
+                saved.getId(), saved.getGrantedHours(), business.getName());
 
         return BusinessFreeHoursResponse.builder()
                 .id(saved.getId())
                 .ticketId(saved.getTicketId())
                 .businessId(saved.getBusinessId())
-                .businessName("Business #" + saved.getBusinessId()) // TODO: Obtener nombre real
+                .businessName(business.getName())
                 .branchId(saved.getBranchId())
                 .grantedHours(saved.getGrantedHours())
                 .grantedAt(saved.getGrantedAt())

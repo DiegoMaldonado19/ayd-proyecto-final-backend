@@ -4,9 +4,11 @@ import com.ayd.parkcontrol.application.dto.request.ticket.ApplyBenefitRequest;
 import com.ayd.parkcontrol.application.dto.response.ticket.BusinessFreeHoursResponse;
 import com.ayd.parkcontrol.domain.exception.BusinessRuleException;
 import com.ayd.parkcontrol.domain.exception.NotFoundException;
+import com.ayd.parkcontrol.infrastructure.persistence.entity.AffiliatedBusinessEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.BusinessFreeHoursEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.TicketEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.TicketStatusTypeEntity;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaAffiliatedBusinessRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaBusinessFreeHoursRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaTicketRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaTicketStatusTypeRepository;
@@ -38,12 +40,16 @@ class ApplyCommerceBenefitUseCaseTest {
     @Mock
     private JpaTicketStatusTypeRepository ticketStatusTypeRepository;
 
+    @Mock
+    private JpaAffiliatedBusinessRepository affiliatedBusinessRepository;
+
     @InjectMocks
     private ApplyCommerceBenefitUseCase applyCommerceBenefitUseCase;
 
     private ApplyBenefitRequest request;
     private TicketEntity ticket;
     private TicketStatusTypeEntity inProgressStatus;
+    private AffiliatedBusinessEntity business;
 
     @BeforeEach
     void setUp() {
@@ -67,6 +73,14 @@ class ApplyCommerceBenefitUseCaseTest {
                 .code("IN_PROGRESS")
                 .name("En Curso")
                 .build();
+
+        business = AffiliatedBusinessEntity.builder()
+                .id(1L)
+                .name("Restaurant El Portal")
+                .taxId("12345678-9")
+                .ratePerHour(BigDecimal.valueOf(8.00))
+                .isActive(true)
+                .build();
     }
 
     @Test
@@ -74,6 +88,7 @@ class ApplyCommerceBenefitUseCaseTest {
         // Arrange
         when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
         when(ticketStatusTypeRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
+        when(affiliatedBusinessRepository.findById(1L)).thenReturn(Optional.of(business));
 
         BusinessFreeHoursEntity savedEntity = BusinessFreeHoursEntity.builder()
                 .id(1L)
@@ -94,6 +109,7 @@ class ApplyCommerceBenefitUseCaseTest {
         assertThat(response).isNotNull();
         assertThat(response.getTicketId()).isEqualTo(1L);
         assertThat(response.getBusinessId()).isEqualTo(1L);
+        assertThat(response.getBusinessName()).isEqualTo("Restaurant El Portal");
         assertThat(response.getGrantedHours()).isEqualByComparingTo(BigDecimal.valueOf(2.0));
         assertThat(response.getIsSettled()).isFalse();
 
@@ -148,5 +164,19 @@ class ApplyCommerceBenefitUseCaseTest {
         assertThatThrownBy(() -> applyCommerceBenefitUseCase.execute(1L, request))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessageContaining("greater than zero");
+    }
+
+    @Test
+    void execute_ShouldThrowNotFoundException_WhenBusinessNotFound() {
+        // Arrange
+        when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
+        when(ticketStatusTypeRepository.findByCode("IN_PROGRESS")).thenReturn(Optional.of(inProgressStatus));
+        when(affiliatedBusinessRepository.findById(999L)).thenReturn(Optional.empty());
+        request.setBusinessId(999L);
+
+        // Act & Assert
+        assertThatThrownBy(() -> applyCommerceBenefitUseCase.execute(1L, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Affiliated business not found");
     }
 }
