@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -71,8 +72,8 @@ class IncidentControllerTest {
     private RegisterIncidentRequest registerRequest;
     private UpdateIncidentRequest updateRequest;
     private ResolveIncidentRequest resolveRequest;
-    private UploadEvidenceRequest uploadEvidenceRequest;
     private IncidentEvidenceResponse evidenceResponse;
+    private MockMultipartFile mockFile;
 
     @BeforeEach
     void setUp() {
@@ -107,14 +108,11 @@ class IncidentControllerTest {
                 .resolutionNotes("Incident resolved")
                 .build();
 
-        uploadEvidenceRequest = UploadEvidenceRequest.builder()
-                .documentTypeId(1)
-                .filePath("/path/to/file.pdf")
-                .fileName("evidence.pdf")
-                .mimeType("application/pdf")
-                .fileSize(1024L)
-                .notes("Evidence notes")
-                .build();
+        mockFile = new MockMultipartFile(
+                "file",
+                "evidence.pdf",
+                "application/pdf",
+                "test file content".getBytes());
 
         evidenceResponse = IncidentEvidenceResponse.builder()
                 .id(1L)
@@ -200,10 +198,11 @@ class IncidentControllerTest {
                 .thenReturn(evidenceResponse);
 
         // Act & Assert
-        mockMvc.perform(post("/incidents/1/evidence")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(uploadEvidenceRequest)))
+        mockMvc.perform(multipart("/incidents/1/evidence")
+                .file(mockFile)
+                .param("document_type_id", "1")
+                .param("notes", "Evidence notes")
+                .with(csrf()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.fileName").value("evidence.pdf"));

@@ -15,9 +15,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -97,19 +99,30 @@ public class IncidentController {
         return ResponseEntity.ok(incident);
     }
 
-    @PostMapping("/{id}/evidence")
+    @PostMapping(value = "/{id}/evidence", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal', 'Operador Back Office')")
-    @Operation(summary = "Upload evidence", description = "Uploads evidence for an incident")
+    @Operation(summary = "Upload evidence", description = "Uploads evidence file for an incident to Azure Blob Storage")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Evidence uploaded successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "201", description = "Evidence uploaded successfully to Azure Storage"),
+            @ApiResponse(responseCode = "400", description = "Invalid file or request data"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Incident or document type not found")
+            @ApiResponse(responseCode = "404", description = "Incident or document type not found"),
+            @ApiResponse(responseCode = "413", description = "File size exceeds 10MB limit"),
+            @ApiResponse(responseCode = "502", description = "Error uploading to Azure Storage")
     })
     public ResponseEntity<IncidentEvidenceResponse> uploadEvidence(
             @PathVariable Long id,
-            @Valid @RequestBody UploadEvidenceRequest request) {
+            @RequestParam("document_type_id") Integer documentTypeId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "notes", required = false) String notes) {
+
+        UploadEvidenceRequest request = UploadEvidenceRequest.builder()
+                .documentTypeId(documentTypeId)
+                .file(file)
+                .notes(notes)
+                .build();
+
         IncidentEvidenceResponse evidence = uploadEvidenceUseCase.execute(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(evidence);
     }
