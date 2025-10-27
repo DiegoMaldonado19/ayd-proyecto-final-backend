@@ -71,8 +71,8 @@ public class ReportController {
     })
     @GetMapping("/subscriptions")
     @PreAuthorize("hasRole('Administrador')")
-    public ResponseEntity<ApiResponse<List<Object>>> getSubscriptionsReport() {
-        List<Object> response = generateSubscriptionReportUseCase.execute();
+    public ResponseEntity<ApiResponse<List<?>>> getSubscriptionsReport() {
+        List<?> response = generateSubscriptionReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -84,8 +84,8 @@ public class ReportController {
     })
     @GetMapping("/commerce-benefits")
     @PreAuthorize("hasRole('Administrador')")
-    public ResponseEntity<ApiResponse<List<Object>>> getCommerceBenefitsReport() {
-        List<Object> response = generateCommerceBenefitsReportUseCase.execute();
+    public ResponseEntity<ApiResponse<List<?>>> getCommerceBenefitsReport() {
+        List<?> response = generateCommerceBenefitsReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -97,8 +97,8 @@ public class ReportController {
     })
     @GetMapping("/cash-closing")
     @PreAuthorize("hasRole('Administrador')")
-    public ResponseEntity<ApiResponse<List<Object>>> getCashClosingReport() {
-        List<Object> response = generateCashClosingReportUseCase.execute();
+    public ResponseEntity<ApiResponse<List<?>>> getCashClosingReport() {
+        List<?> response = generateCashClosingReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -110,8 +110,8 @@ public class ReportController {
     })
     @GetMapping("/incidents")
     @PreAuthorize("hasRole('Administrador')")
-    public ResponseEntity<ApiResponse<List<Object>>> getIncidentsReport() {
-        List<Object> response = generateIncidentsReportUseCase.execute();
+    public ResponseEntity<ApiResponse<List<?>>> getIncidentsReport() {
+        List<?> response = generateIncidentsReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -123,8 +123,8 @@ public class ReportController {
     })
     @GetMapping("/fleets")
     @PreAuthorize("hasRole('Administrador')")
-    public ResponseEntity<ApiResponse<List<Object>>> getFleetsReport() {
-        List<Object> response = generateFleetsReportUseCase.execute();
+    public ResponseEntity<ApiResponse<List<?>>> getFleetsReport() {
+        List<?> response = generateFleetsReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
