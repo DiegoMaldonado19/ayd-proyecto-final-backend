@@ -2,6 +2,7 @@ package com.ayd.parkcontrol.application.usecase.fleet;
 
 import com.ayd.parkcontrol.application.dto.request.fleet.AddVehicleToFleetRequest;
 import com.ayd.parkcontrol.application.dto.response.fleet.FleetVehicleResponse;
+import com.ayd.parkcontrol.application.mapper.FleetDtoMapper;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.FleetCompanyEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.FleetVehicleEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.SubscriptionPlanEntity;
@@ -40,6 +41,9 @@ class AddVehicleToFleetUseCaseTest {
 
     @Mock
     private JpaVehicleTypeRepository vehicleTypeRepository;
+
+    @Mock
+    private FleetDtoMapper fleetDtoMapper;
 
     @InjectMocks
     private AddVehicleToFleetUseCase addVehicleToFleetUseCase;
@@ -97,6 +101,16 @@ class AddVehicleToFleetUseCaseTest {
         FleetVehicleEntity savedVehicle = FleetVehicleEntity.builder()
                 .id(1L)
                 .licensePlate("ABC-123")
+                .companyId(companyId)
+                .planId(1L)
+                .vehicleTypeId(1)
+                .assignedEmployee("John Doe")
+                .isActive(true)
+                .build();
+
+        FleetVehicleEntity vehicleWithDetails = FleetVehicleEntity.builder()
+                .id(1L)
+                .licensePlate("ABC-123")
                 .company(company)
                 .plan(plan)
                 .vehicleType(vehicleType)
@@ -104,7 +118,15 @@ class AddVehicleToFleetUseCaseTest {
                 .isActive(true)
                 .build();
 
+        FleetVehicleResponse expectedResponse = FleetVehicleResponse.builder()
+                .id(1L)
+                .licensePlate("ABC-123")
+                .assignedEmployee("John Doe")
+                .build();
+
         when(fleetVehicleRepository.save(any(FleetVehicleEntity.class))).thenReturn(savedVehicle);
+        when(fleetVehicleRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(vehicleWithDetails));
+        when(fleetDtoMapper.toVehicleResponse(vehicleWithDetails)).thenReturn(expectedResponse);
 
         // When
         FleetVehicleResponse response = addVehicleToFleetUseCase.execute(companyId, request);
@@ -140,6 +162,10 @@ class AddVehicleToFleetUseCaseTest {
         // Given
         Long companyId = 1L;
         when(fleetCompanyRepository.findById(companyId)).thenReturn(Optional.of(company));
+        when(subscriptionPlanRepository.existsById(1L)).thenReturn(true);
+        when(vehicleTypeRepository.existsById(1)).thenReturn(true);
+        when(fleetVehicleRepository.existsActiveLicensePlate("ABC-123")).thenReturn(false);
+        when(fleetVehicleRepository.existsByCompanyIdAndLicensePlate(companyId, "ABC-123")).thenReturn(false);
         when(fleetCompanyRepository.countActiveVehiclesByCompanyId(companyId)).thenReturn(20L); // Limit reached
 
         // When & Then
@@ -155,7 +181,6 @@ class AddVehicleToFleetUseCaseTest {
         // Given
         Long companyId = 1L;
         when(fleetCompanyRepository.findById(companyId)).thenReturn(Optional.of(company));
-        when(fleetCompanyRepository.countActiveVehiclesByCompanyId(companyId)).thenReturn(10L);
         when(subscriptionPlanRepository.existsById(1L)).thenReturn(true);
         when(vehicleTypeRepository.existsById(1)).thenReturn(true);
         when(fleetVehicleRepository.existsActiveLicensePlate("ABC-123")).thenReturn(true);
@@ -173,7 +198,6 @@ class AddVehicleToFleetUseCaseTest {
         // Given
         Long companyId = 1L;
         when(fleetCompanyRepository.findById(companyId)).thenReturn(Optional.of(company));
-        when(fleetCompanyRepository.countActiveVehiclesByCompanyId(companyId)).thenReturn(10L);
         when(subscriptionPlanRepository.existsById(1L)).thenReturn(false);
 
         // When & Then
@@ -189,7 +213,6 @@ class AddVehicleToFleetUseCaseTest {
         // Given
         Long companyId = 1L;
         when(fleetCompanyRepository.findById(companyId)).thenReturn(Optional.of(company));
-        when(fleetCompanyRepository.countActiveVehiclesByCompanyId(companyId)).thenReturn(10L);
         when(subscriptionPlanRepository.existsById(1L)).thenReturn(true);
         when(vehicleTypeRepository.existsById(1)).thenReturn(false);
 
