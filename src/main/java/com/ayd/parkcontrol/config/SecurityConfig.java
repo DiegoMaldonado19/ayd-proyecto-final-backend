@@ -80,7 +80,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/incidents/**")
                         .hasAnyRole("Administrador", "Operador Sucursal", "Operador Back Office")
-                        .requestMatchers("/fleets/**").hasAnyRole("Administrador", "Administrador Flotilla")
+                        .requestMatchers("/fleets/**")
+                        .hasAnyRole("Administrador", "Administrador Flotilla", "Operador Back Office")
 
                         .requestMatchers("/reports/**").hasAnyRole("Administrador", "Operador Sucursal")
 
