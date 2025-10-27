@@ -115,4 +115,32 @@ public interface JpaTicketRepository extends JpaRepository<TicketEntity, Long> {
          */
         @Query("SELECT MAX(t.entryTime) FROM TicketEntity t WHERE t.licensePlate = :licensePlate")
         java.time.LocalDateTime findLastEntryByLicensePlate(@Param("licensePlate") String licensePlate);
+
+        /**
+         * Contar tickets activos (sin exit_time) de dos ruedas en una sucursal.
+         * Usado para sincronización de ocupación con Redis.
+         */
+        @Query(value = """
+                            SELECT COUNT(t.id)
+                            FROM tickets t
+                            INNER JOIN vehicle_types vt ON t.vehicle_type_id = vt.id
+                            WHERE t.branch_id = :branchId
+                              AND vt.code = '2R'
+                              AND t.exit_time IS NULL
+                        """, nativeQuery = true)
+        long countActiveTwoWheelerTickets(@Param("branchId") Long branchId);
+
+        /**
+         * Contar tickets activos (sin exit_time) de cuatro ruedas en una sucursal.
+         * Usado para sincronización de ocupación con Redis.
+         */
+        @Query(value = """
+                            SELECT COUNT(t.id)
+                            FROM tickets t
+                            INNER JOIN vehicle_types vt ON t.vehicle_type_id = vt.id
+                            WHERE t.branch_id = :branchId
+                              AND vt.code = '4R'
+                              AND t.exit_time IS NULL
+                        """, nativeQuery = true)
+        long countActiveFourWheelerTickets(@Param("branchId") Long branchId);
 }
