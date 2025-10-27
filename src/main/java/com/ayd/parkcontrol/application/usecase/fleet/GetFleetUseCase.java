@@ -22,7 +22,7 @@ public class GetFleetUseCase {
         log.info("Getting fleet company with id: {}", id);
 
         FleetCompanyEntity company = fleetCompanyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Fleet company with id " + id + " not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Empresa flotillera no encontrada con ID: " + id));
 
         Long activeVehiclesCount = fleetCompanyRepository.countActiveVehiclesByCompanyId(id);
 

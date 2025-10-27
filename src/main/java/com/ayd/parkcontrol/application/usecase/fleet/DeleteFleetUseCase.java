@@ -18,7 +18,7 @@ public class DeleteFleetUseCase {
         log.info("Deleting fleet company with id: {}", id);
 
         if (!fleetCompanyRepository.existsById(id)) {
-            throw new IllegalArgumentException("Fleet company with id " + id + " not found");
+            throw new IllegalArgumentException("Empresa flotillera no encontrada con ID: " + id);
         }
 
         Long activeVehiclesCount = fleetCompanyRepository.countActiveVehiclesByCompanyId(id);

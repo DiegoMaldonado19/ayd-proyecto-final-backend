@@ -28,26 +28,39 @@ public class AddVehicleToFleetUseCase {
     public FleetVehicleResponse execute(Long companyId, AddVehicleToFleetRequest request) {
         log.info("Adding vehicle to fleet company id: {}, license_plate: {}", companyId, request.getLicensePlate());
 
-        if (!fleetCompanyRepository.existsById(companyId)) {
-            throw new IllegalArgumentException("Fleet company with id " + companyId + " not found");
-        }
+        // Verificar que la empresa existe
+        var company = fleetCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new IllegalArgumentException("Fleet company with id " + companyId + " not found"));
 
+        // Validar que el plan de suscripción existe
         if (!subscriptionPlanRepository.existsById(request.getPlanId())) {
             throw new IllegalArgumentException("Subscription plan with id " + request.getPlanId() + " not found");
         }
 
+        // Validar que el tipo de vehículo existe
         if (!vehicleTypeRepository.existsById(request.getVehicleTypeId())) {
             throw new IllegalArgumentException("Vehicle type with id " + request.getVehicleTypeId() + " not found");
         }
 
+        // Validar que la placa no esté registrada en otra flotilla activa
         if (fleetVehicleRepository.existsActiveLicensePlate(request.getLicensePlate())) {
             throw new IllegalArgumentException(
                     "License plate " + request.getLicensePlate() + " is already registered in another active fleet");
         }
 
+        // Validar que la placa no esté duplicada en esta flotilla
         if (fleetVehicleRepository.existsByCompanyIdAndLicensePlate(companyId, request.getLicensePlate())) {
             throw new IllegalArgumentException(
                     "License plate " + request.getLicensePlate() + " is already registered in this fleet");
+        }
+
+        // REGLA DE NEGOCIO: Validar límite de placas de la empresa
+        Long currentActiveVehicles = fleetCompanyRepository.countActiveVehiclesByCompanyId(companyId);
+        if (currentActiveVehicles >= company.getPlateLimit()) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Fleet company has reached its plate limit of %d vehicles. Current active vehicles: %d",
+                            company.getPlateLimit(), currentActiveVehicles));
         }
 
         FleetVehicleEntity vehicle = FleetVehicleEntity.builder()

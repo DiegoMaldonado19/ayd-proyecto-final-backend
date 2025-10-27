@@ -4,6 +4,7 @@ import com.ayd.parkcontrol.application.dto.request.fleet.AddVehicleToFleetReques
 import com.ayd.parkcontrol.application.dto.request.fleet.CreateFleetRequest;
 import com.ayd.parkcontrol.application.dto.request.fleet.UpdateFleetDiscountsRequest;
 import com.ayd.parkcontrol.application.dto.request.fleet.UpdateFleetRequest;
+import com.ayd.parkcontrol.application.dto.response.fleet.FleetConsumptionResponse;
 import com.ayd.parkcontrol.application.dto.response.fleet.FleetDiscountsResponse;
 import com.ayd.parkcontrol.application.dto.response.fleet.FleetResponse;
 import com.ayd.parkcontrol.application.dto.response.fleet.FleetVehicleResponse;
@@ -40,6 +41,7 @@ public class FleetController {
     private final ListFleetVehiclesUseCase listFleetVehiclesUseCase;
     private final GetFleetDiscountsUseCase getFleetDiscountsUseCase;
     private final UpdateFleetDiscountsUseCase updateFleetDiscountsUseCase;
+    private final GetFleetConsumptionUseCase getFleetConsumptionUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Administrador', 'Operador Back Office')")
@@ -201,6 +203,20 @@ public class FleetController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateFleetDiscountsRequest request) {
         FleetDiscountsResponse response = updateFleetDiscountsUseCase.execute(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/consumption")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Back Office')")
+    @Operation(summary = "Get fleet consumption statistics", description = "Returns consumption statistics for a fleet company")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Consumption retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Fleet not found")
+    })
+    public ResponseEntity<FleetConsumptionResponse> getFleetConsumption(@PathVariable Long id) {
+        FleetConsumptionResponse response = getFleetConsumptionUseCase.execute(id);
         return ResponseEntity.ok(response);
     }
 }

@@ -23,7 +23,7 @@ public class UpdateFleetUseCase {
         log.info("Updating fleet company with id: {}", id);
 
         FleetCompanyEntity company = fleetCompanyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Fleet company with id " + id + " not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Empresa flotillera no encontrada con ID: " + id));
 
         if (request.getName() != null) {
             company.setName(request.getName());
