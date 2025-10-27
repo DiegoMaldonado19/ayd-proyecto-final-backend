@@ -94,9 +94,9 @@ class AutoRenewSubscriptionsJobTest {
         job.processAutoRenewals();
 
         // Assert
-        ArgumentCaptor<PurchaseSubscriptionRequest> requestCaptor = 
-                ArgumentCaptor.forClass(PurchaseSubscriptionRequest.class);
-        
+        ArgumentCaptor<PurchaseSubscriptionRequest> requestCaptor = ArgumentCaptor
+                .forClass(PurchaseSubscriptionRequest.class);
+
         verify(purchaseSubscriptionUseCase).execute(requestCaptor.capture(), eq(100L));
         verify(emailService).sendEmail(eq("user@example.com"), contains("renovada"), any());
 
@@ -149,17 +149,16 @@ class AutoRenewSubscriptionsJobTest {
 
         // Assert
         verify(emailService).sendEmail(
-                eq("user@example.com"), 
-                contains("Fallo en renovación"), 
-                contains("Payment failed")
-        );
+                eq("user@example.com"),
+                contains("Fallo en renovación"),
+                contains("Payment failed"));
     }
 
     @Test
     void processAutoRenewals_withNullUserEmail_shouldNotSendEmail() {
         // Arrange
         mockSubscription.setUserEmail(null);
-        
+
         when(subscriptionRepository.findExpiringSoonWithAutoRenew(any(), any()))
                 .thenReturn(List.of(mockSubscription));
 
@@ -188,7 +187,7 @@ class AutoRenewSubscriptionsJobTest {
 
         // Act & Assert - should not throw exception
         assertDoesNotThrow(() -> job.processAutoRenewals());
-        
+
         verify(purchaseSubscriptionUseCase).execute(any(), any());
     }
 
@@ -196,7 +195,7 @@ class AutoRenewSubscriptionsJobTest {
     void processAutoRenewals_withAnnualSubscription_shouldMaintainAnnualFlag() {
         // Arrange
         mockSubscription.setIsAnnual(true);
-        
+
         when(subscriptionRepository.findExpiringSoonWithAutoRenew(any(), any()))
                 .thenReturn(List.of(mockSubscription));
 
@@ -207,9 +206,8 @@ class AutoRenewSubscriptionsJobTest {
         job.processAutoRenewals();
 
         // Assert
-        ArgumentCaptor<PurchaseSubscriptionRequest> captor = 
-                ArgumentCaptor.forClass(PurchaseSubscriptionRequest.class);
-        
+        ArgumentCaptor<PurchaseSubscriptionRequest> captor = ArgumentCaptor.forClass(PurchaseSubscriptionRequest.class);
+
         verify(purchaseSubscriptionUseCase).execute(captor.capture(), any());
         assertTrue(captor.getValue().getIsAnnual());
     }
@@ -226,16 +224,15 @@ class AutoRenewSubscriptionsJobTest {
         // Assert
         ArgumentCaptor<LocalDateTime> startCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
         ArgumentCaptor<LocalDateTime> endCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-        
+
         verify(subscriptionRepository).findExpiringSoonWithAutoRenew(
-                startCaptor.capture(), 
-                endCaptor.capture()
-        );
+                startCaptor.capture(),
+                endCaptor.capture());
 
         // Verificar que la ventana es de 7 días
         LocalDateTime start = startCaptor.getValue();
         LocalDateTime end = endCaptor.getValue();
-        
+
         assertTrue(end.isAfter(start));
         assertTrue(end.isBefore(start.plusDays(8))); // 7 días + margen
     }
