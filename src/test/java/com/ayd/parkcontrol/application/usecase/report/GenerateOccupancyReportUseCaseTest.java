@@ -95,13 +95,13 @@ class GenerateOccupancyReportUseCaseTest {
                 .thenReturn(Optional.of(vehicleType4R));
         when(branchRepository.findAll(any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(Arrays.asList(branch1, branch2)));
-        
+
         // Sucursal 1: 10 motos de 50, 15 autos de 30
         when(ticketRepository.countActiveTicketsByBranchAndVehicleType(1L, 1, 1))
                 .thenReturn(10L);
         when(ticketRepository.countActiveTicketsByBranchAndVehicleType(1L, 2, 1))
                 .thenReturn(15L);
-        
+
         // Sucursal 2: 20 motos de 40, 10 autos de 25
         when(ticketRepository.countActiveTicketsByBranchAndVehicleType(2L, 1, 1))
                 .thenReturn(20L);
@@ -120,7 +120,7 @@ class GenerateOccupancyReportUseCaseTest {
                 .filter(r -> r.getBranchId().equals(1L) && "2R".equals(r.getVehicleType()))
                 .findFirst()
                 .orElseThrow();
-        
+
         assertEquals("Sucursal Centro", centro2R.getBranchName());
         assertEquals(50, centro2R.getTotalCapacity());
         assertEquals(10, centro2R.getCurrentOccupancy());
@@ -131,7 +131,7 @@ class GenerateOccupancyReportUseCaseTest {
                 .filter(r -> r.getBranchId().equals(2L) && "4R".equals(r.getVehicleType()))
                 .findFirst()
                 .orElseThrow();
-        
+
         assertEquals("Sucursal Norte", norte4R.getBranchName());
         assertEquals(25, norte4R.getTotalCapacity());
         assertEquals(10, norte4R.getCurrentOccupancy());
@@ -175,7 +175,7 @@ class GenerateOccupancyReportUseCaseTest {
                 .thenReturn(Optional.of(vehicleType4R));
         when(branchRepository.findAll(any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(branch1)));
-        
+
         // 100% ocupación en 2R
         when(ticketRepository.countActiveTicketsByBranchAndVehicleType(1L, 1, 1))
                 .thenReturn(50L);
@@ -191,7 +191,7 @@ class GenerateOccupancyReportUseCaseTest {
                 .filter(r -> "2R".equals(r.getVehicleType()))
                 .findFirst()
                 .orElseThrow();
-        
+
         assertEquals(100.0, detail2R.getOccupancyPercentage());
         assertEquals(50, detail2R.getCurrentOccupancy());
     }
