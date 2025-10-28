@@ -87,39 +87,39 @@ INSERT INTO document_types (code, name, description) VALUES
 
 -- ============================================
 -- USUARIOS DEL SISTEMA
--- Contraseña para todos: "Temporal123" (hasheada con BCrypt)
+-- Contraseña para todos: Password123$
 -- ============================================
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone, role_type_id, is_active, requires_password_change, has_2fa_enabled) VALUES
-('admin@parkcontrol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Carlos', 'Rodriguez', '50245678901', 1, TRUE, FALSE, TRUE),
-('op.centro@parkcontrol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Ana', 'Lopez', '50245678902', 2, TRUE, FALSE, FALSE),
-('op.plaza@parkcontrol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Luis', 'Martinez', '50245678903', 2, TRUE, FALSE, FALSE),
-('op.norte@parkcontrol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Sofia', 'Garcia', '50245678904', 2, TRUE, FALSE, FALSE),
-('backoffice@parkcontrol.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Pedro', 'Morales', '50245678905', 3, TRUE, FALSE, TRUE),
-('maria.gonzalez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Maria', 'Gonzalez', '50212345678', 4, TRUE, FALSE, TRUE),
-('juan.perez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Juan', 'Perez', '50212345679', 4, TRUE, FALSE, FALSE),
-('carmen.ramirez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Carmen', 'Ramirez', '50212345680', 4, TRUE, FALSE, FALSE),
-('roberto.castro@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Roberto', 'Castro', '50212345681', 4, TRUE, FALSE, TRUE),
-('lucia.fernandez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Lucia', 'Fernandez', '50212345682', 4, TRUE, FALSE, FALSE),
-('diego.sanchez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Diego', 'Sanchez', '50212345683', 4, TRUE, FALSE, FALSE),
-('patricia.mendez@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Patricia', 'Mendez', '50212345684', 4, TRUE, FALSE, FALSE),
-('fernando.diaz@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Fernando', 'Diaz', '50212345685', 4, TRUE, FALSE, FALSE),
-('andrea.torres@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Andrea', 'Torres', '50212345686', 4, TRUE, FALSE, FALSE),
-('miguel.herrera@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Miguel', 'Herrera', '50212345687', 4, TRUE, FALSE, FALSE),
-('visitante1@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Jorge', 'Mejia', '50298765432', 4, TRUE, FALSE, FALSE),
-('visitante2@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Isabel', 'Ortiz', '50298765433', 4, TRUE, FALSE, FALSE),
-('visitante3@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Raul', 'Vargas', '50298765434', 4, TRUE, FALSE, FALSE),
-('visitante4@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Elena', 'Ruiz', '50298765435', 4, TRUE, FALSE, FALSE),
-('visitante5@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Oscar', 'Navarro', '50298765436', 4, TRUE, FALSE, FALSE),
-('admin.transportes@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Ricardo', 'Flores', '50234567890', 5, TRUE, FALSE, TRUE),
-('admin.logistica@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i', 'Daniela', 'Vega', '50234567891', 5, TRUE, FALSE, FALSE);
+('admin@parkcontrol.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Carlos', 'Rodriguez', '50245678901', 1, TRUE, FALSE, TRUE),
+('op.centro@parkcontrol.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Ana', 'Lopez', '50245678902', 2, TRUE, FALSE, FALSE),
+('op.plaza@parkcontrol.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Luis', 'Martinez', '50245678903', 2, TRUE, FALSE, FALSE),
+('op.norte@parkcontrol.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Sofia', 'Garcia', '50245678904', 2, TRUE, FALSE, FALSE),
+('backoffice@parkcontrol.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Pedro', 'Morales', '50245678905', 3, TRUE, FALSE, TRUE),
+('maria.gonzalez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Maria', 'Gonzalez', '50212345678', 4, TRUE, FALSE, TRUE),
+('juan.perez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Juan', 'Perez', '50212345679', 4, TRUE, FALSE, FALSE),
+('carmen.ramirez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Carmen', 'Ramirez', '50212345680', 4, TRUE, FALSE, FALSE),
+('roberto.castro@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Roberto', 'Castro', '50212345681', 4, TRUE, FALSE, TRUE),
+('lucia.fernandez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Lucia', 'Fernandez', '50212345682', 4, TRUE, FALSE, FALSE),
+('diego.sanchez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Diego', 'Sanchez', '50212345683', 4, TRUE, FALSE, FALSE),
+('patricia.mendez@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Patricia', 'Mendez', '50212345684', 4, TRUE, FALSE, FALSE),
+('fernando.diaz@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Fernando', 'Diaz', '50212345685', 4, TRUE, FALSE, FALSE),
+('andrea.torres@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Andrea', 'Torres', '50212345686', 4, TRUE, FALSE, FALSE),
+('miguel.herrera@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Miguel', 'Herrera', '50212345687', 4, TRUE, FALSE, FALSE),
+('visitante1@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Jorge', 'Mejia', '50298765432', 4, TRUE, FALSE, FALSE),
+('visitante2@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Isabel', 'Ortiz', '50298765433', 4, TRUE, FALSE, FALSE),
+('visitante3@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Raul', 'Vargas', '50298765434', 4, TRUE, FALSE, FALSE),
+('visitante4@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Elena', 'Ruiz', '50298765435', 4, TRUE, FALSE, FALSE),
+('visitante5@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Oscar', 'Navarro', '50298765436', 4, TRUE, FALSE, FALSE),
+('admin.transportes@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Ricardo', 'Flores', '50234567890', 5, TRUE, FALSE, TRUE),
+('admin.logistica@email.com', '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq', 'Daniela', 'Vega', '50234567891', 5, TRUE, FALSE, FALSE);
 
 INSERT INTO password_history (user_id, password_hash) VALUES
-(1, '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i'),
-(2, '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i'),
-(3, '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i'),
-(4, '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i'),
-(5, '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lW7QXnUF.Q7i');
+(1, '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq'),
+(2, '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq'),
+(3, '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq'),
+(4, '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq'),
+(5, '$2a$12$bJVP7ttQby16rb6CEGlYq.lhAe1XXDxB/ryDHAuuZf9oDjZv4wgKq');
 
 INSERT INTO rate_base_history (amount_per_hour, start_date, end_date, is_active, created_by) VALUES
 (12.00, '2025-01-01 00:00:00', NULL, TRUE, 1);
