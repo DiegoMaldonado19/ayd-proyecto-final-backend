@@ -1,10 +1,15 @@
 package com.ayd.parkcontrol.infrastructure.persistence.adapter;
 
 import com.ayd.parkcontrol.domain.model.subscription.Subscription;
+import com.ayd.parkcontrol.domain.model.subscription.SubscriptionOverage;
+import com.ayd.parkcontrol.domain.model.subscription.SubscriptionUsage;
 import com.ayd.parkcontrol.domain.repository.SubscriptionRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.SubscriptionEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.mapper.SubscriptionMapper;
+import com.ayd.parkcontrol.infrastructure.persistence.mapper.SubscriptionUsageMapper;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaSubscriptionOverageRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaSubscriptionRepository;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaSubscriptionUsageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +25,10 @@ import java.util.stream.Collectors;
 public class SubscriptionRepositoryAdapter implements SubscriptionRepository {
 
     private final JpaSubscriptionRepository jpaRepository;
+    private final JpaSubscriptionUsageRepository usageRepository;
+    private final JpaSubscriptionOverageRepository overageRepository;
     private final SubscriptionMapper mapper;
+    private final SubscriptionUsageMapper usageMapper;
 
     @Override
     public Subscription save(Subscription subscription) {
@@ -94,5 +102,33 @@ public class SubscriptionRepositoryAdapter implements SubscriptionRepository {
     @Override
     public boolean existsActiveLicensePlateExcluding(String licensePlate, Long excludeId) {
         return jpaRepository.existsActiveLicensePlateExcluding(licensePlate, excludeId, LocalDateTime.now());
+    }
+
+    @Override
+    public List<SubscriptionUsage> findUsageBySubscriptionId(Long subscriptionId) {
+        return usageRepository.findBySubscriptionId(subscriptionId)
+                .stream()
+                .map(usageMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<SubscriptionUsage> findUsageBySubscriptionId(Long subscriptionId, Pageable pageable) {
+        return usageRepository.findBySubscriptionIdWithDetails(subscriptionId, pageable)
+                .map(usageMapper::toDomain);
+    }
+
+    @Override
+    public List<SubscriptionOverage> findOveragesBySubscriptionId(Long subscriptionId) {
+        return overageRepository.findBySubscriptionId(subscriptionId)
+                .stream()
+                .map(usageMapper::toOverageDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<SubscriptionOverage> findOveragesBySubscriptionId(Long subscriptionId, Pageable pageable) {
+        return overageRepository.findBySubscriptionIdWithDetails(subscriptionId, pageable)
+                .map(usageMapper::toOverageDomain);
     }
 }

@@ -1,6 +1,8 @@
 package com.ayd.parkcontrol.domain.repository;
 
 import com.ayd.parkcontrol.domain.model.subscription.Subscription;
+import com.ayd.parkcontrol.domain.model.subscription.SubscriptionOverage;
+import com.ayd.parkcontrol.domain.model.subscription.SubscriptionUsage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,4 +35,12 @@ public interface SubscriptionRepository {
     boolean existsActiveLicensePlate(String licensePlate);
 
     boolean existsActiveLicensePlateExcluding(String licensePlate, Long excludeId);
+
+    List<SubscriptionUsage> findUsageBySubscriptionId(Long subscriptionId);
+
+    Page<SubscriptionUsage> findUsageBySubscriptionId(Long subscriptionId, Pageable pageable);
+
+    List<SubscriptionOverage> findOveragesBySubscriptionId(Long subscriptionId);
+
+    Page<SubscriptionOverage> findOveragesBySubscriptionId(Long subscriptionId, Pageable pageable);
 }
