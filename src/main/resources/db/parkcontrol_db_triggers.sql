@@ -389,6 +389,23 @@ BEGIN
     AND granted_at BETWEEN p_start_date AND p_end_date AND is_settled = FALSE;
 END//
 
+CREATE PROCEDURE cleanup_expired_password_reset_tokens()
+BEGIN
+    DECLARE deleted_count INT;
+    
+    DELETE FROM password_reset_tokens 
+    WHERE expires_at < NOW() 
+    OR (is_used = TRUE AND used_at < DATE_SUB(NOW(), INTERVAL 7 DAY));
+    
+    SET deleted_count = ROW_COUNT();
+    
+    IF deleted_count > 0 THEN
+        INSERT INTO audit_log (user_id, module, entity, operation_type_id, description)
+        VALUES (NULL, 'Sistema', 'password_reset_tokens', (SELECT id FROM operation_types WHERE code = 'DELETE'),
+                CONCAT('Limpieza automatica: ', deleted_count, ' tokens eliminados'));
+    END IF;
+END//
+
 CREATE PROCEDURE validate_plan_hierarchy(
     IN p_plan_type_id INT,
     IN p_monthly_discount DECIMAL(5,2),
@@ -1039,7 +1056,7 @@ SELECT '============================================' AS '';
 SELECT 'SCRIPT DE LOGICA EJECUTADO EXITOSAMENTE' AS status;
 SELECT '============================================' AS '';
 SELECT 'Funciones: 4' AS info;
-SELECT 'Procedimientos: 9' AS '';
+SELECT 'Procedimientos: 10' AS '';
 SELECT 'Triggers: 20' AS '';
 SELECT 'Vistas: 6' AS '';
 SELECT '============================================' AS '';

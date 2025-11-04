@@ -4,7 +4,9 @@ import com.ayd.parkcontrol.application.dto.request.auth.ResetPasswordRequest;
 import com.ayd.parkcontrol.application.dto.response.common.ApiResponse;
 import com.ayd.parkcontrol.application.port.notification.EmailService;
 import com.ayd.parkcontrol.domain.exception.UserNotFoundException;
+import com.ayd.parkcontrol.infrastructure.persistence.entity.PasswordResetTokenEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.UserEntity;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaPasswordResetTokenRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,9 @@ class ResetPasswordUseCaseTest {
     @Mock
     private EmailService emailService;
 
+    @Mock
+    private JpaPasswordResetTokenRepository tokenRepository;
+
     @InjectMocks
     private ResetPasswordUseCase resetPasswordUseCase;
 
@@ -63,21 +68,23 @@ class ResetPasswordUseCaseTest {
     @Test
     void execute_shouldResetPasswordSuccessfully_whenUserExists() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$newTemporaryHash");
-        when(userRepository.save(any(UserEntity.class))).thenReturn(testUser);
+        doNothing().when(tokenRepository).invalidateAllTokensForUser(any(), any());
+        when(tokenRepository.save(any(PasswordResetTokenEntity.class))).thenReturn(new PasswordResetTokenEntity());
         doNothing().when(emailService).sendPasswordResetEmail(anyString(), anyString());
 
         ApiResponse<Void> response = resetPasswordUseCase.execute(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.getMessage()).isEqualTo("Password reset instructions sent to your email");
+        assertThat(response.getMessage()).isEqualTo("A verification code has been sent to your email");
 
-        ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
-        verify(userRepository).save(userCaptor.capture());
+        verify(tokenRepository).invalidateAllTokensForUser(eq(1L), any());
 
-        UserEntity savedUser = userCaptor.getValue();
-        assertThat(savedUser.getRequiresPasswordChange()).isTrue();
-        assertThat(savedUser.getPasswordHash()).isEqualTo("$2a$10$newTemporaryHash");
+        ArgumentCaptor<PasswordResetTokenEntity> tokenCaptor = ArgumentCaptor.forClass(PasswordResetTokenEntity.class);
+        verify(tokenRepository).save(tokenCaptor.capture());
+
+        PasswordResetTokenEntity savedToken = tokenCaptor.getValue();
+        assertThat(savedToken.getToken()).hasSize(6);
+        assertThat(savedToken.getToken()).matches("\\d{6}");
 
         verify(emailService).sendPasswordResetEmail(eq("test@parkcontrol.com"), anyString());
     }
@@ -95,10 +102,10 @@ class ResetPasswordUseCaseTest {
     }
 
     @Test
-    void execute_shouldGenerateTemporaryPasswordWithCorrectLength_whenResettingPassword() {
+    void execute_shouldGenerate2FACodeWithCorrectLength_whenResettingPassword() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$newTemporaryHash");
-        when(userRepository.save(any(UserEntity.class))).thenReturn(testUser);
+        doNothing().when(tokenRepository).invalidateAllTokensForUser(any(), any());
+        when(tokenRepository.save(any(PasswordResetTokenEntity.class))).thenReturn(new PasswordResetTokenEntity());
 
         ArgumentCaptor<String> emailContentCaptor = ArgumentCaptor.forClass(String.class);
         doNothing().when(emailService).sendPasswordResetEmail(anyString(), emailContentCaptor.capture());
@@ -106,26 +113,31 @@ class ResetPasswordUseCaseTest {
         resetPasswordUseCase.execute(request);
 
         String emailContent = emailContentCaptor.getValue();
-        assertThat(emailContent).contains("Please use this temporary password to login:");
+        assertThat(emailContent).contains("Your password reset verification code is:");
 
-        // Extract temporary password from email content
-        String tempPassword = emailContent.replace("Please use this temporary password to login: ", "");
-        assertThat(tempPassword).hasSize(12);
-        assertThat(tempPassword).matches("[A-Za-z0-9!@#$%]+");
+        // Extract 2FA code from email content (after the "is:" text)
+        int codeStartIndex = emailContent.indexOf("code is:") + 9;
+        String extractedLine = emailContent.substring(codeStartIndex);
+        String extractedCode = extractedLine.substring(0, extractedLine.indexOf("\n")).trim();
+        assertThat(extractedCode).hasSize(6);
+        assertThat(extractedCode).matches("\\d{6}");
     }
 
     @Test
-    void execute_shouldSetRequiresPasswordChangeToTrue_whenResettingPassword() {
+    void execute_shouldInvalidateOldTokensAndCreateNewToken_whenResettingPassword() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$newTemporaryHash");
-        when(userRepository.save(any(UserEntity.class))).thenReturn(testUser);
+        doNothing().when(tokenRepository).invalidateAllTokensForUser(any(), any());
+        when(tokenRepository.save(any(PasswordResetTokenEntity.class))).thenReturn(new PasswordResetTokenEntity());
         doNothing().when(emailService).sendPasswordResetEmail(anyString(), anyString());
 
         resetPasswordUseCase.execute(request);
 
-        ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
-        verify(userRepository).save(userCaptor.capture());
+        verify(tokenRepository).invalidateAllTokensForUser(eq(1L), any());
 
-        assertThat(userCaptor.getValue().getRequiresPasswordChange()).isTrue();
+        ArgumentCaptor<PasswordResetTokenEntity> tokenCaptor = ArgumentCaptor.forClass(PasswordResetTokenEntity.class);
+        verify(tokenRepository).save(tokenCaptor.capture());
+
+        assertThat(tokenCaptor.getValue().getUserId()).isEqualTo(1L);
+        assertThat(tokenCaptor.getValue().getIsUsed()).isFalse();
     }
 }

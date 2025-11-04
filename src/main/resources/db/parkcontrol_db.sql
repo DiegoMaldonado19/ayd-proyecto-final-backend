@@ -78,6 +78,19 @@ CREATE TABLE operation_types (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE password_reset_tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(6) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_user_token (user_id, token),
+    INDEX idx_expires_at (expires_at)
+) ENGINE=InnoDB;
+
 CREATE TABLE incident_types (
     id INT PRIMARY KEY AUTO_INCREMENT,
     code VARCHAR(30) NOT NULL UNIQUE,
@@ -316,6 +329,30 @@ CREATE TABLE tickets (
     CONSTRAINT chk_ticket_plate_format CHECK (license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$')
 ) ENGINE=InnoDB;
 
+CREATE TABLE ticket_charges (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    ticket_id BIGINT NOT NULL,
+    total_hours DECIMAL(10,2) NOT NULL,
+    free_hours_granted DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    billable_hours DECIMAL(10,2) NOT NULL,
+    rate_applied DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    subscription_hours_consumed DECIMAL(10,2) DEFAULT 0.00,
+    subscription_overage_hours DECIMAL(10,2) DEFAULT 0.00,
+    subscription_overage_charge DECIMAL(10,2) DEFAULT 0.00,
+    total_amount DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ticket_charges_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY uk_ticket_charge (ticket_id),
+    INDEX idx_created_at (created_at),
+    CONSTRAINT chk_total_hours CHECK (total_hours >= 0),
+    CONSTRAINT chk_free_hours CHECK (free_hours_granted >= 0),
+    CONSTRAINT chk_billable_hours CHECK (billable_hours >= 0),
+    CONSTRAINT chk_rate CHECK (rate_applied >= 0),
+    CONSTRAINT chk_subtotal CHECK (subtotal >= 0),
+    CONSTRAINT chk_total_amount CHECK (total_amount >= 0)
+) ENGINE=InnoDB;
+
 CREATE TABLE business_free_hours (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     ticket_id BIGINT NOT NULL,
@@ -456,20 +493,21 @@ CREATE TABLE incident_files (
 CREATE TABLE plate_change_requests (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     subscription_id BIGINT NOT NULL,
-    old_plate VARCHAR(20) NOT NULL,
-    new_plate VARCHAR(20) NOT NULL,
+    user_id BIGINT NOT NULL,
+    old_license_plate VARCHAR(20) NOT NULL,
+    new_license_plate VARCHAR(20) NOT NULL,
     reason_id INT NOT NULL,
-    status_type_id INT NOT NULL,
-    requested_at DATETIME NOT NULL,
+    notes VARCHAR(500),
+    status_id INT NOT NULL,
     reviewed_by BIGINT NULL,
     reviewed_at DATETIME NULL,
-    effective_date DATETIME NULL,
-    observations TEXT,
+    review_notes VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_plate_change_subscription FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_plate_change_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_plate_change_reason FOREIGN KEY (reason_id) REFERENCES plate_change_reasons(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_plate_change_status FOREIGN KEY (status_type_id) REFERENCES change_request_status_types(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_plate_change_status FOREIGN KEY (status_id) REFERENCES change_request_status_types(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_plate_change_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
     INDEX idx_subscription (subscription_id),
     INDEX idx_status (status_type_id),
