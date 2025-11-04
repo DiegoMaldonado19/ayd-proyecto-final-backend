@@ -209,10 +209,10 @@ INSERT INTO temporal_permits (subscription_id, temporal_plate, start_date, end_d
 (3, 'TMP-999', '2025-10-01 00:00:00', '2025-10-31 23:59:59', 20, 5, JSON_ARRAY(1, 2, 3), 2, 1, 5),
 (4, 'TMP-111', '2025-09-01 00:00:00', '2025-09-15 23:59:59', 15, 15, JSON_ARRAY(1, 2), 2, 2, 5);
 
-INSERT INTO fleet_companies (name, tax_id, contact_name, corporate_email, phone, corporate_discount_percentage, plate_limit, billing_period, months_unpaid, is_active) VALUES
-('Transportes Rapidos SA', '45678901-2', 'Ricardo Flores', 'admin@transportesrapidos.com', '50234567890', 5.00, 10, 'MONTHLY', 0, TRUE),
-('Logistica Global GT', '56789012-3', 'Daniela Vega', 'contacto@logisticaglobal.com', '50234567891', 7.00, 15, 'MONTHLY', 0, TRUE),
-('Empresa Morosa SA', '67890123-4', 'Carlos Impago', 'admin@morosa.com', '50234567892', 3.00, 5, 'MONTHLY', 2, TRUE);
+INSERT INTO fleet_companies (name, tax_id, contact_name, corporate_email, phone, corporate_discount_percentage, plate_limit, billing_period, months_unpaid, is_active, admin_user_id) VALUES
+('Transportes Rapidos SA', '45678901-2', 'Ricardo Flores', 'admin@transportesrapidos.com', '50234567890', 5.00, 10, 'MONTHLY', 0, TRUE, 21),
+('Logistica Global GT', '56789012-3', 'Daniela Vega', 'contacto@logisticaglobal.com', '50234567891', 7.00, 15, 'MONTHLY', 0, TRUE, 22),
+('Empresa Morosa SA', '67890123-4', 'Carlos Impago', 'admin@morosa.com', '50234567892', 3.00, 5, 'MONTHLY', 2, TRUE, NULL);
 
 INSERT INTO fleet_vehicles (company_id, license_plate, plan_id, vehicle_type_id, assigned_employee, is_active) VALUES
 (1, 'FLT-001', 1, 2, 'Jose Ramirez', TRUE),

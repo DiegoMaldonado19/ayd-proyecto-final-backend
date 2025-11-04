@@ -78,19 +78,6 @@ CREATE TABLE operation_types (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE password_reset_tokens (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    token VARCHAR(6) NOT NULL UNIQUE,
-    expires_at DATETIME NOT NULL,
-    is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    used_at DATETIME NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX idx_user_token (user_id, token),
-    INDEX idx_expires_at (expires_at)
-) ENGINE=InnoDB;
-
 CREATE TABLE incident_types (
     id INT PRIMARY KEY AUTO_INCREMENT,
     code VARCHAR(30) NOT NULL UNIQUE,
@@ -149,6 +136,20 @@ CREATE TABLE password_history (
     CONSTRAINT fk_password_history_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     INDEX idx_user (user_id),
     INDEX idx_user_created (user_id, created_at DESC)
+) ENGINE=InnoDB;
+
+CREATE TABLE password_reset_tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(6) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_user_token (user_id, token),
+    INDEX idx_expires_at (expires_at),
+    INDEX idx_token (token)
 ) ENGINE=InnoDB;
 
 CREATE TABLE rate_base_history (
@@ -225,7 +226,7 @@ CREATE TABLE vehicles (
     INDEX idx_active (is_active),
     INDEX idx_user_active (user_id, is_active),
     CONSTRAINT chk_vehicle_plate_format CHECK (license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
-    CONSTRAINT chk_vehicle_year CHECK (year IS NULL OR (year >= 1900 AND year <= YEAR(CURDATE()) + 1))
+    CONSTRAINT chk_vehicle_year CHECK (year IS NULL OR (year >= 1900 AND year <= 2050))
 ) ENGINE=InnoDB;
 
 CREATE TABLE subscriptions (
@@ -579,12 +580,15 @@ CREATE TABLE fleet_companies (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    admin_user_id BIGINT NULL COMMENT 'ID del usuario administrador de la flotilla',
     INDEX idx_name (name),
     INDEX idx_active (is_active),
     CONSTRAINT chk_corporate_discount CHECK (corporate_discount_percentage >= 0 AND corporate_discount_percentage <= 10),
     CONSTRAINT chk_plate_limit CHECK (plate_limit > 0 AND plate_limit <= 50),
     CONSTRAINT chk_months_unpaid CHECK (months_unpaid >= 0),
-    CONSTRAINT chk_fleet_email CHECK (corporate_email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}')
+    CONSTRAINT chk_fleet_email CHECK (corporate_email REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}'),
+    CONSTRAINT fk_fleet_company_admin_user FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    INDEX idx_fleet_companies_admin_user (admin_user_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE fleet_vehicles (

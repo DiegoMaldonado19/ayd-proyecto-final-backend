@@ -47,14 +47,18 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * Configuración de límites de tasa por endpoint.
      * 
      * Reglas de Negocio:
-     * - Login: 5 intentos cada 15 minutos (900 segundos)
-     * - Verificación 2FA: 3 intentos cada 5 minutos (300 segundos)
-     * - Recuperación de contraseña: 3 intentos cada hora (3600 segundos)
+     * - Login: 50 intentos cada 15 minutos (900 segundos)
+     * - Verificación 2FA: 30 intentos cada 5 minutos (300 segundos)
+     * - Recuperación de contraseña: 20 intentos cada hora (3600 segundos)
+     * 
+     * NOTA: Estos límites están configurados para desarrollo. En producción, se
+     * recomienda
+     * reducir a: Login (5), 2FA (3), Forgot Password (3)
      */
     private static final Map<String, RateLimitConfig> RATE_LIMITS = Map.of(
-            "/api/v1/auth/login", new RateLimitConfig(5, 900),
-            "/api/v1/auth/verify-2fa", new RateLimitConfig(3, 300),
-            "/api/v1/auth/forgot-password", new RateLimitConfig(3, 3600));
+            "/api/v1/auth/login", new RateLimitConfig(50, 900),
+            "/api/v1/auth/verify-2fa", new RateLimitConfig(30, 300),
+            "/api/v1/auth/forgot-password", new RateLimitConfig(20, 3600));
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
