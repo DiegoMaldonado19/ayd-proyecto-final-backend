@@ -59,6 +59,9 @@ class AuthControllerTest {
         @MockitoBean
         private GetProfileUseCase getProfileUseCase;
 
+        @MockitoBean
+        private ChangePasswordWith2FAUseCase changePasswordWith2FAUseCase;
+
         @Test
         void login_shouldReturnLoginResponse_whenCredentialsAreValid() throws Exception {
                 LoginRequest request = LoginRequest.builder()
@@ -161,6 +164,83 @@ class AuthControllerTest {
 
         @Test
         @WithMockUser
+        void disable2FA_shouldReturnSuccess() throws Exception {
+                TwoFAResponse response = TwoFAResponse.builder()
+                                .message("2FA disabled successfully")
+                                .isEnabled(false)
+                                .build();
+
+                when(disable2FAUseCase.execute()).thenReturn(response);
+
+                mockMvc.perform(post("/auth/2fa/disable")
+                                .with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.message").value("2FA disabled successfully"))
+                                .andExpect(jsonPath("$.is_enabled").value(false));
+        }
+
+        @Test
+        void resetPassword_shouldReturnSuccess() throws Exception {
+                ResetPasswordRequest request = ResetPasswordRequest.builder()
+                                .email("test@parkcontrol.com")
+                                .build();
+
+                ApiResponse<Void> response = ApiResponse.success("Reset instructions sent");
+                when(resetPasswordUseCase.execute(any(ResetPasswordRequest.class))).thenReturn(response);
+
+                mockMvc.perform(post("/auth/password/reset")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("success"))
+                                .andExpect(jsonPath("$.message").value("Reset instructions sent"));
+        }
+
+        @Test
+        @WithMockUser
+        void changePasswordWith2FA_shouldReturnSuccess() throws Exception {
+                ChangePasswordWith2FARequest request = ChangePasswordWith2FARequest.builder()
+                                .newPassword("newPassword123")
+                                .confirmPassword("newPassword123")
+                                .code("123456")
+                                .build();
+
+                ApiResponse<Void> response = ApiResponse.success("Password changed successfully");
+                when(changePasswordWith2FAUseCase.execute(any(ChangePasswordWith2FARequest.class)))
+                                .thenReturn(response);
+
+                mockMvc.perform(post("/auth/password/change")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("success"))
+                                .andExpect(jsonPath("$.message").value("Password changed successfully"));
+        }
+
+        @Test
+        @WithMockUser
+        void changePasswordLegacy_shouldReturnSuccess() throws Exception {
+                ChangePasswordRequest request = ChangePasswordRequest.builder()
+                                .currentPassword("oldPassword123")
+                                .newPassword("newPassword123")
+                                .confirmPassword("newPassword123")
+                                .build();
+
+                ApiResponse<Void> response = ApiResponse.success("Password changed successfully");
+                when(changePasswordUseCase.execute(any(ChangePasswordRequest.class))).thenReturn(response);
+
+                mockMvc.perform(post("/auth/password/change/legacy")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("success"));
+        }
+
+        @Test
+        @WithMockUser
         void getProfile_shouldReturnUserProfile() throws Exception {
                 UserProfileResponse response = UserProfileResponse.builder()
                                 .userId(1L)
@@ -177,5 +257,11 @@ class AuthControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.email").value("test@parkcontrol.com"))
                                 .andExpect(jsonPath("$.first_name").value("John"));
+        }
+
+        @Test
+        void login_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
+                mockMvc.perform(get("/auth/profile"))
+                                .andExpect(status().isUnauthorized());
         }
 }

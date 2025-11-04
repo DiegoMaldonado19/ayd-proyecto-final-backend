@@ -84,6 +84,10 @@ class FleetControllerTest {
         @org.springframework.boot.test.mock.mockito.MockBean
         private UpdateFleetDiscountsUseCase updateFleetDiscountsUseCase;
 
+        @SuppressWarnings("removal")
+        @org.springframework.boot.test.mock.mockito.MockBean
+        private GetFleetConsumptionUseCase getFleetConsumptionUseCase;
+
         private FleetResponse fleetResponse;
         private CreateFleetRequest createFleetRequest;
         private UpdateFleetRequest updateFleetRequest;
@@ -281,6 +285,90 @@ class FleetControllerTest {
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.corporate_discount_percentage").value(8.00));
+        }
+
+        @Test
+        @WithMockUser(roles = "Administrador")
+        void shouldGetFleetConsumptionSuccessfully() throws Exception {
+                com.ayd.parkcontrol.application.dto.response.fleet.FleetConsumptionResponse consumptionResponse = com.ayd.parkcontrol.application.dto.response.fleet.FleetConsumptionResponse
+                                .builder()
+                                .companyId(1L)
+                                .companyName("Test Fleet")
+                                .totalVehicles(15)
+                                .totalEntries(100L)
+                                .totalHoursConsumed(new BigDecimal("500.00"))
+                                .totalAmountCharged(new BigDecimal("5000.00"))
+                                .build();
+
+                when(getFleetConsumptionUseCase.execute(1L)).thenReturn(consumptionResponse);
+
+                mockMvc.perform(get("/fleets/1/consumption")
+                                .with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.company_id").value(1))
+                                .andExpect(jsonPath("$.total_vehicles").value(15))
+                                .andExpect(jsonPath("$.total_entries").value(100))
+                                .andExpect(jsonPath("$.total_amount_charged").value(5000.00));
+        }
+
+        @Test
+        @WithMockUser(roles = "Operador Back Office")
+        void shouldListFleetVehiclesSuccessfully() throws Exception {
+                FleetVehicleResponse vehicleResponse = FleetVehicleResponse.builder()
+                                .id(1L)
+                                .companyId(1L)
+                                .licensePlate("ABC123")
+                                .isActive(true)
+                                .build();
+
+                Page<FleetVehicleResponse> page = new PageImpl<>(Collections.singletonList(vehicleResponse));
+                when(listFleetVehiclesUseCase.execute(eq(1L), any(PageRequest.class))).thenReturn(page);
+
+                mockMvc.perform(get("/fleets/1/vehicles")
+                                .with(csrf())
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].id").value(1))
+                                .andExpect(jsonPath("$.content[0].license_plate").value("ABC123"));
+        }
+
+        @Test
+        @WithMockUser(roles = "Operador Back Office")
+        void shouldListFleetVehiclesByActiveStatus() throws Exception {
+                FleetVehicleResponse vehicleResponse = FleetVehicleResponse.builder()
+                                .id(1L)
+                                .companyId(1L)
+                                .licensePlate("ABC123")
+                                .isActive(true)
+                                .build();
+
+                Page<FleetVehicleResponse> page = new PageImpl<>(Collections.singletonList(vehicleResponse));
+                when(listFleetVehiclesUseCase.executeByActive(eq(1L), eq(true), any(PageRequest.class)))
+                                .thenReturn(page);
+
+                mockMvc.perform(get("/fleets/1/vehicles")
+                                .with(csrf())
+                                .param("isActive", "true")
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].is_active").value(true));
+        }
+
+        @Test
+        @WithMockUser(roles = "Administrador")
+        void shouldListFleetsByActiveStatus() throws Exception {
+                Page<FleetResponse> page = new PageImpl<>(Collections.singletonList(fleetResponse));
+                when(listFleetsUseCase.executeByActive(eq(true), any(PageRequest.class))).thenReturn(page);
+
+                mockMvc.perform(get("/fleets")
+                                .with(csrf())
+                                .param("isActive", "true")
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].is_active").value(true));
         }
 
         @Test
