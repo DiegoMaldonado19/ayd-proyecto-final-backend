@@ -1,5 +1,7 @@
 package com.ayd.parkcontrol.security;
 
+import com.ayd.parkcontrol.domain.model.user.Role;
+import com.ayd.parkcontrol.domain.repository.RoleRepository;
 import com.ayd.parkcontrol.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.util.Collections;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -26,10 +29,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         com.ayd.parkcontrol.domain.model.user.User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        // Get role name from role repository
+        Role role = roleRepository.findById(user.getRoleTypeId())
+                .orElseThrow(() -> new UsernameNotFoundException("Role not found for user: " + username));
+
+        String roleName = role.getName();
+        log.debug("User {} has role: {}", username, roleName);
+
         return User.builder()
                 .username(user.getEmail())
                 .password(user.getPasswordHash())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMINISTRATOR")))
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName)))
                 .accountExpired(false)
                 .accountLocked(!user.getIsActive())
                 .credentialsExpired(user.getRequiresPasswordChange())

@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/2fa/disable").authenticated()
                         .requestMatchers("/auth/profile").authenticated()
 
+                        .requestMatchers("/users/**").hasRole("Administrador")
                         .requestMatchers("/rates/**").hasRole("Administrador")
                         .requestMatchers("/branches/**").hasRole("Administrador")
                         .requestMatchers("/subscription-plans/**").hasRole("Administrador")
