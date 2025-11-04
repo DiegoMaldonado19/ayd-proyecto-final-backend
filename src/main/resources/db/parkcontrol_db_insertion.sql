@@ -194,16 +194,16 @@ INSERT INTO stored_files (document_type_id, file_name, file_url, container_name,
 (2, 'tarjeta-circulacion-vst333.jpg', 'https://parkcontrolstorage.blob.core.windows.net/incident-evidence/2025/10/tarjeta-vst333.jpg', 'incident-evidence', '2025/10/tarjeta-vst333.jpg', 198432, 'image/jpeg', 4, '2025-10-06 18:26:00'),
 (6, 'foto-vehiculo-vst333.jpg', 'https://parkcontrolstorage.blob.core.windows.net/incident-evidence/2025/10/foto-vst333.jpg', 'incident-evidence', '2025/10/foto-vst333.jpg', 312456, 'image/jpeg', 4, '2025-10-06 18:27:00');
 
-INSERT INTO incidents (ticket_id, branch_id, incident_type_id, customer_name, identification_type, identification_number, operator_id, resolution, incident_date) VALUES
-(15, 3, 1, 'Jorge Mejia', 'DPI', '2345678901234', 4, 'Ticket localizado por placa. Cliente presento documentos validos. Salida procesada normalmente.', '2025-10-06 18:30:00');
+INSERT INTO incidents (ticket_id, branch_id, incident_type_id, reported_by_user_id, license_plate, description, resolution_notes, is_resolved, resolved_by_user_id, resolved_at) VALUES
+(15, 3, 1, 4, 'VST-333', 'Ticket extraviado - Cliente Jorge Mejia presenta documentacion', 'Ticket localizado por placa. Cliente presento documentos validos. Salida procesada normalmente.', TRUE, 4, '2025-10-06 18:30:00');
 
 INSERT INTO incident_files (incident_id, stored_file_id) VALUES
 (1, 1),
 (1, 2),
 (1, 3);
 
-INSERT INTO plate_change_requests (subscription_id, old_plate, new_plate, reason_id, status_type_id, requested_at, reviewed_by, reviewed_at, effective_date, observations) VALUES
-(5, 'MNO345', 'NEW-789', 1, 1, '2025-10-10 09:00:00', NULL, NULL, NULL, NULL);
+INSERT INTO plate_change_requests (subscription_id, user_id, old_license_plate, new_license_plate, reason_id, notes, status_id, reviewed_by, reviewed_at, review_notes) VALUES
+(5, 10, 'MNO345', 'NEW-789', 1, 'Solicitud de cambio de placa por robo', 1, NULL, NULL, NULL);
 
 INSERT INTO temporal_permits (subscription_id, temporal_plate, start_date, end_date, max_uses, current_uses, allowed_branches, vehicle_type_id, status_type_id, approved_by) VALUES
 (3, 'TMP-999', '2025-10-01 00:00:00', '2025-10-31 23:59:59', 20, 5, JSON_ARRAY(1, 2, 3), 2, 1, 5),
