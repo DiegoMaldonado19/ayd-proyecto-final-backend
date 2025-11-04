@@ -30,6 +30,7 @@ public class AuthController {
     private final Disable2FAUseCase disable2FAUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
+    private final ChangePasswordWith2FAUseCase changePasswordWith2FAUseCase;
     private final GetProfileUseCase getProfileUseCase;
 
     @PostMapping("/login")
@@ -116,7 +117,22 @@ public class AuthController {
     }
 
     @PostMapping("/password/change")
-    @Operation(summary = "Change password", description = "Change password for authenticated user")
+    @Operation(summary = "Change password with 2FA", description = "Change password using 2FA code received via email after password reset request")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password changed successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid password or code"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid or expired verification code")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> changePasswordWith2FA(
+            @Valid @RequestBody ChangePasswordWith2FARequest request) {
+        ApiResponse<Void> response = changePasswordWith2FAUseCase.execute(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/password/change/legacy")
+    @Operation(summary = "Change password (legacy)", description = "Change password for authenticated user using current password (deprecated, use /password/change with 2FA)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password changed successfully"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid password"),
@@ -124,6 +140,7 @@ public class AuthController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isAuthenticated()")
+    @Deprecated
     public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         ApiResponse<Void> response = changePasswordUseCase.execute(request);
         return ResponseEntity.ok(response);

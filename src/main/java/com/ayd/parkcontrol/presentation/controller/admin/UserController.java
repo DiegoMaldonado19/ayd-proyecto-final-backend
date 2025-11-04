@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class UserController {
 
         private final CreateUserUseCase createUserUseCase;
         private final ListUsersUseCase listUsersUseCase;
+        private final ListAllUsersUseCase listAllUsersUseCase;
         private final GetUserUseCase getUserUseCase;
         private final UpdateUserUseCase updateUserUseCase;
         private final DeleteUserUseCase deleteUserUseCase;
@@ -51,6 +54,21 @@ public class UserController {
                         @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
                         @Parameter(description = "Dirección de ordenamiento", example = "desc") @RequestParam(defaultValue = "desc") String sortDirection) {
                 PageResponse<UserResponse> response = listUsersUseCase.execute(page, size, sortBy, sortDirection);
+                return ResponseEntity.ok(ApiResponse.success(response));
+        }
+
+        @Operation(summary = "Listar todos los usuarios (sin paginación)", description = "Obtiene una lista completa de todos los usuarios del sistema sin paginación, con opciones de ordenamiento")
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
+        })
+        @GetMapping("/all")
+        @PreAuthorize("hasRole('Administrador')")
+        public ResponseEntity<ApiResponse<List<UserResponse>>> listAllUsers(
+                        @Parameter(description = "Campo de ordenamiento", example = "createdAt") @RequestParam(defaultValue = "createdAt") String sortBy,
+                        @Parameter(description = "Dirección de ordenamiento", example = "desc") @RequestParam(defaultValue = "desc") String sortDirection) {
+                List<UserResponse> response = listAllUsersUseCase.execute(sortBy, sortDirection);
                 return ResponseEntity.ok(ApiResponse.success(response));
         }
 
