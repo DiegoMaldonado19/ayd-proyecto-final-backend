@@ -5,7 +5,7 @@ public interface EmailService {
 
     void send2FACode(String to, String code);
 
-    void sendPasswordResetEmail(String to, String resetLink);
+    void sendPasswordResetEmail(String to, String code);
 
     void sendPasswordChangedNotification(String to, String userName);
 }

@@ -1,8 +1,8 @@
 package com.ayd.parkcontrol.application.usecase.auth;
 
-import com.ayd.parkcontrol.application.dto.request.auth.ResetPasswordRequest;
 import com.ayd.parkcontrol.application.dto.response.common.ApiResponse;
 import com.ayd.parkcontrol.application.port.notification.EmailService;
+import com.ayd.parkcontrol.domain.exception.BusinessRuleException;
 import com.ayd.parkcontrol.domain.exception.UserNotFoundException;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.PasswordResetTokenEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.UserEntity;
@@ -10,7 +10,8 @@ import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaPasswordRese
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ResetPasswordUseCase {
+public class RequestPasswordChangeUseCase {
 
     private static final String DIGITS = "0123456789";
     private static final int TOKEN_LENGTH = 6;
@@ -31,22 +32,27 @@ public class ResetPasswordUseCase {
     private final JpaPasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
 
-    @Value("${server.servlet.context-path:/api/v1}")
-    private String contextPath;
-
     @Transactional
-    public ApiResponse<Void> execute(ResetPasswordRequest request) {
-        UserEntity user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    public ApiResponse<Void> execute() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        // Invalidate all previous tokens for this user
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        // Validar que no es el primer login (no requiere cambio de contraseña)
+        if (user.getRequiresPasswordChange()) {
+            throw new BusinessRuleException("Para el primer cambio de contraseña utiliza el endpoint /auth/password/first-change");
+        }
+
+        // Invalidar todos los tokens previos para este usuario
         tokenRepository.invalidateAllTokensForUser(user.getId(), LocalDateTime.now());
 
-        // Generate new 6-digit code
+        // Generar nuevo código de 6 dígitos
         String token = generateToken();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(TOKEN_VALIDITY_MINUTES);
 
-        // Save token
+        // Guardar token
         PasswordResetTokenEntity tokenEntity = PasswordResetTokenEntity.builder()
                 .userId(user.getId())
                 .token(token)
@@ -55,12 +61,12 @@ public class ResetPasswordUseCase {
                 .build();
         tokenRepository.save(tokenEntity);
 
-        // Send 2FA code via email
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        // Enviar código 2FA por email usando el template de 2FA
+        emailService.send2FACode(user.getEmail(), token);
 
-        log.info("Password reset 2FA code sent to user: {}", user.getEmail());
+        log.info("Password change 2FA code sent to user: {}", user.getEmail());
 
-        return ApiResponse.success("Un código de verificación ha sido enviado a tu correo electrónico");
+        return ApiResponse.success("Se ha enviado un código de verificación a tu correo electrónico para confirmar el cambio de contraseña");
     }
 
     private String generateToken() {

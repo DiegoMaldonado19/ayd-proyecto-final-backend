@@ -29,8 +29,10 @@ public class AuthController {
     private final Verify2FACodeUseCase verify2FACodeUseCase;
     private final Disable2FAUseCase disable2FAUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
+    private final RequestPasswordChangeUseCase requestPasswordChangeUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
     private final ChangePasswordWith2FAUseCase changePasswordWith2FAUseCase;
+    private final FirstPasswordChangeUseCase firstPasswordChangeUseCase;
     private final GetProfileUseCase getProfileUseCase;
 
     @PostMapping("/login")
@@ -105,6 +107,20 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/password/change/request")
+    @Operation(summary = "Solicitar cambio de contraseña", description = "Envía código 2FA al correo del usuario autenticado para iniciar proceso de cambio de contraseña")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Código 2FA enviado exitosamente"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Usuario requiere primer cambio de contraseña"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autorizado")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> requestPasswordChange() {
+        ApiResponse<Void> response = requestPasswordChangeUseCase.execute();
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/password/reset")
     @Operation(summary = "Request password reset", description = "Send password reset instructions to user email")
     @ApiResponses(value = {
@@ -113,6 +129,20 @@ public class AuthController {
     })
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         ApiResponse<Void> response = resetPasswordUseCase.execute(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/password/first-change")
+    @Operation(summary = "First password change for new users", description = "Change password for new users without 2FA requirement. Only works when user requires password change.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password changed successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid password or user does not require password change"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Current password incorrect")
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> firstPasswordChange(@Valid @RequestBody FirstPasswordChangeRequest request) {
+        ApiResponse<Void> response = firstPasswordChangeUseCase.execute(request);
         return ResponseEntity.ok(response);
     }
 

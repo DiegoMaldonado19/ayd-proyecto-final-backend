@@ -44,21 +44,21 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void send2FACode(String to, String code) {
-        String subject = appName + " - Two-Factor Authentication Code";
+        String subject = appName + " - Código de Autenticación de Dos Factores";
         String body = build2FAEmailBody(code);
         sendEmail(to, subject, body);
     }
 
     @Override
-    public void sendPasswordResetEmail(String to, String resetLink) {
-        String subject = appName + " - Password Reset Request";
-        String body = buildPasswordResetEmailBody(resetLink);
+    public void sendPasswordResetEmail(String to, String code) {
+        String subject = appName + " - Solicitud de Restablecimiento de Contraseña";
+        String body = buildPasswordResetEmailBody(code);
         sendEmail(to, subject, body);
     }
 
     @Override
     public void sendPasswordChangedNotification(String to, String userName) {
-        String subject = appName + " - Password Changed Successfully";
+        String subject = appName + " - Contraseña Cambiada Exitosamente";
         String body = buildPasswordChangedEmailBody(userName);
         sendEmail(to, subject, body);
     }
@@ -84,15 +84,15 @@ public class EmailServiceImpl implements EmailService {
                             <h1>%s</h1>
                         </div>
                         <div class="content">
-                            <h2>Two-Factor Authentication</h2>
-                            <p>You have requested to log in to your account. Please use the following verification code:</p>
+                            <h2>Autenticación de Dos Factores</h2>
+                            <p>Has solicitado iniciar sesión en tu cuenta. Por favor, utiliza el siguiente código de verificación:</p>
                             <div class="code">%s</div>
-                            <p>This code will expire in <strong>5 minutes</strong>.</p>
-                            <p class="warning">If you did not request this code, please ignore this email and ensure your account is secure.</p>
+                            <p>Este código expirará en <strong>5 minutos</strong>.</p>
+                            <p class="warning">Si no solicitaste este código, por favor ignora este correo y asegúrate de que tu cuenta esté segura.</p>
                         </div>
                         <div class="footer">
-                            <p>This is an automated message, please do not reply to this email.</p>
-                            <p>&copy; 2025 %s. All rights reserved.</p>
+                            <p>Este es un mensaje automatizado, por favor no responder a este correo.</p>
+                            <p>&copy; 2025 %s. Todos los derechos reservados.</p>
                         </div>
                     </div>
                 </body>
@@ -101,7 +101,7 @@ public class EmailServiceImpl implements EmailService {
                 .formatted(appName, code, appName);
     }
 
-    private String buildPasswordResetEmailBody(String resetLink) {
+    private String buildPasswordResetEmailBody(String code) {
         return """
                 <!DOCTYPE html>
                 <html>
@@ -111,7 +111,7 @@ public class EmailServiceImpl implements EmailService {
                         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                         .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
                         .content { background-color: #f9f9f9; padding: 30px; border-radius: 5px; margin-top: 20px; }
-                        .button { display: inline-block; padding: 12px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                        .code { font-size: 32px; font-weight: bold; color: #2c3e50; text-align: center; letter-spacing: 5px; padding: 20px; background-color: #ecf0f1; border-radius: 5px; margin: 20px 0; }
                         .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #7f8c8d; }
                         .warning { color: #e74c3c; font-weight: bold; }
                     </style>
@@ -122,23 +122,22 @@ public class EmailServiceImpl implements EmailService {
                             <h1>%s</h1>
                         </div>
                         <div class="content">
-                            <h2>Password Reset Request</h2>
-                            <p>We received a request to reset your password. Click the button below to proceed:</p>
-                            <div style="text-align: center;">
-                                <a href="%s" class="button">Reset Password</a>
-                            </div>
-                            <p>This link will expire in <strong>1 hour</strong>.</p>
-                            <p class="warning">If you did not request a password reset, please ignore this email and contact support if you have concerns.</p>
+                            <h2>Solicitud de Restablecimiento de Contraseña</h2>
+                            <p>Hemos recibido una solicitud para restablecer tu contraseña. Utiliza el siguiente código de verificación:</p>
+                            <div class="code">%s</div>
+                            <p>Este código expirará en <strong>15 minutos</strong>.</p>
+                            <p>Utiliza este código en la aplicación para continuar con el proceso de cambio de contraseña.</p>
+                            <p class="warning">Si no solicitaste restablecer tu contraseña, por favor ignora este correo y contacta a soporte si tienes dudas.</p>
                         </div>
                         <div class="footer">
-                            <p>This is an automated message, please do not reply to this email.</p>
-                            <p>&copy; 2025 %s. All rights reserved.</p>
+                            <p>Este es un mensaje automatizado, por favor no responder a este correo.</p>
+                            <p>&copy; 2025 %s. Todos los derechos reservados.</p>
                         </div>
                     </div>
                 </body>
                 </html>
                 """
-                .formatted(appName, resetLink, appName);
+                .formatted(appName, code, appName);
     }
 
     private String buildPasswordChangedEmailBody(String userName) {
@@ -162,15 +161,15 @@ public class EmailServiceImpl implements EmailService {
                             <h1>%s</h1>
                         </div>
                         <div class="content">
-                            <h2 class="success">Password Changed Successfully</h2>
-                            <p>Hi %s,</p>
-                            <p>Your password has been changed successfully.</p>
-                            <p>If you made this change, no further action is required.</p>
-                            <p class="warning">If you did not change your password, please contact support immediately.</p>
+                            <h2 class="success">Contraseña Cambiada Exitosamente</h2>
+                            <p>Hola %s,</p>
+                            <p>Tu contraseña ha sido cambiada exitosamente.</p>
+                            <p>Si realizaste este cambio, no se requiere ninguna acción adicional.</p>
+                            <p class="warning">Si no cambiaste tu contraseña, por favor contacta a soporte inmediatamente.</p>
                         </div>
                         <div class="footer">
-                            <p>This is an automated message, please do not reply to this email.</p>
-                            <p>&copy; 2025 %s. All rights reserved.</p>
+                            <p>Este es un mensaje automatizado, por favor no responder a este correo.</p>
+                            <p>&copy; 2025 %s. Todos los derechos reservados.</p>
                         </div>
                     </div>
                 </body>

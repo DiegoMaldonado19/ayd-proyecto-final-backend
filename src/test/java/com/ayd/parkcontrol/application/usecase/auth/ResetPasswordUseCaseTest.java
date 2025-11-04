@@ -75,7 +75,7 @@ class ResetPasswordUseCaseTest {
         ApiResponse<Void> response = resetPasswordUseCase.execute(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.getMessage()).isEqualTo("A verification code has been sent to your email");
+        assertThat(response.getMessage()).isEqualTo("Un código de verificación ha sido enviado a tu correo electrónico");
 
         verify(tokenRepository).invalidateAllTokensForUser(eq(1L), any());
 
@@ -107,20 +107,16 @@ class ResetPasswordUseCaseTest {
         doNothing().when(tokenRepository).invalidateAllTokensForUser(any(), any());
         when(tokenRepository.save(any(PasswordResetTokenEntity.class))).thenReturn(new PasswordResetTokenEntity());
 
-        ArgumentCaptor<String> emailContentCaptor = ArgumentCaptor.forClass(String.class);
-        doNothing().when(emailService).sendPasswordResetEmail(anyString(), emailContentCaptor.capture());
+        ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        doNothing().when(emailService).sendPasswordResetEmail(anyString(), codeCaptor.capture());
 
         resetPasswordUseCase.execute(request);
 
-        String emailContent = emailContentCaptor.getValue();
-        assertThat(emailContent).contains("Your password reset verification code is:");
-
-        // Extract 2FA code from email content (after the "is:" text)
-        int codeStartIndex = emailContent.indexOf("code is:") + 9;
-        String extractedLine = emailContent.substring(codeStartIndex);
-        String extractedCode = extractedLine.substring(0, extractedLine.indexOf("\n")).trim();
-        assertThat(extractedCode).hasSize(6);
-        assertThat(extractedCode).matches("\\d{6}");
+        String sentCode = codeCaptor.getValue();
+        
+        // Verify the code is 6 digits
+        assertThat(sentCode).hasSize(6);
+        assertThat(sentCode).matches("\\d{6}"); // Only digits
     }
 
     @Test

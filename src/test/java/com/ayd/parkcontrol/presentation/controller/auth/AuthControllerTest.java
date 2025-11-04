@@ -54,7 +54,13 @@ class AuthControllerTest {
         private ResetPasswordUseCase resetPasswordUseCase;
 
         @MockitoBean
+        private RequestPasswordChangeUseCase requestPasswordChangeUseCase;
+
+        @MockitoBean
         private ChangePasswordUseCase changePasswordUseCase;
+
+        @MockitoBean
+        private FirstPasswordChangeUseCase firstPasswordChangeUseCase;
 
         @MockitoBean
         private GetProfileUseCase getProfileUseCase;
@@ -221,6 +227,28 @@ class AuthControllerTest {
 
         @Test
         @WithMockUser
+        void firstPasswordChange_shouldReturnSuccess() throws Exception {
+                FirstPasswordChangeRequest request = FirstPasswordChangeRequest.builder()
+                                .currentPassword("tempPassword123")
+                                .newPassword("newPassword456")
+                                .confirmPassword("newPassword456")
+                                .build();
+
+                ApiResponse<Void> response = ApiResponse.success("Contraseña cambiada exitosamente. Ahora puedes usar todas las funciones del sistema.");
+                when(firstPasswordChangeUseCase.execute(any(FirstPasswordChangeRequest.class)))
+                                .thenReturn(response);
+
+                mockMvc.perform(post("/auth/password/first-change")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("success"))
+                                .andExpect(jsonPath("$.message").value("Contraseña cambiada exitosamente. Ahora puedes usar todas las funciones del sistema."));
+        }
+
+        @Test
+        @WithMockUser
         void changePasswordLegacy_shouldReturnSuccess() throws Exception {
                 ChangePasswordRequest request = ChangePasswordRequest.builder()
                                 .currentPassword("oldPassword123")
@@ -263,5 +291,18 @@ class AuthControllerTest {
         void login_shouldReturnUnauthorized_whenNotAuthenticated() throws Exception {
                 mockMvc.perform(get("/auth/profile"))
                                 .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @WithMockUser
+        void requestPasswordChange_shouldReturnSuccess() throws Exception {
+                ApiResponse<Void> response = ApiResponse.success("Se ha enviado un código de verificación a tu correo electrónico para confirmar el cambio de contraseña");
+                when(requestPasswordChangeUseCase.execute()).thenReturn(response);
+
+                mockMvc.perform(post("/auth/password/change/request")
+                                .with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("success"))
+                                .andExpect(jsonPath("$.message").value("Se ha enviado un código de verificación a tu correo electrónico para confirmar el cambio de contraseña"));
         }
 }
