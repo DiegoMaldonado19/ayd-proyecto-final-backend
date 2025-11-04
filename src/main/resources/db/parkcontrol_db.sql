@@ -510,12 +510,12 @@ CREATE TABLE plate_change_requests (
     CONSTRAINT fk_plate_change_status FOREIGN KEY (status_id) REFERENCES change_request_status_types(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_plate_change_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
     INDEX idx_subscription (subscription_id),
-    INDEX idx_status (status_type_id),
-    INDEX idx_requested_at (requested_at),
-    INDEX idx_subscription_status (subscription_id, status_type_id),
-    CONSTRAINT chk_old_plate_format CHECK (old_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
-    CONSTRAINT chk_new_plate_format CHECK (new_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
-    CONSTRAINT chk_different_plates CHECK (old_plate != new_plate)
+    INDEX idx_status (status_id),
+    INDEX idx_created_at (created_at),
+    INDEX idx_subscription_status (subscription_id, status_id),
+    CONSTRAINT chk_old_plate_format CHECK (old_license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
+    CONSTRAINT chk_new_plate_format CHECK (new_license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
+    CONSTRAINT chk_different_plates CHECK (old_license_plate != new_license_plate)
 ) ENGINE=InnoDB;
 
 CREATE TABLE plate_change_files (

@@ -695,9 +695,9 @@ BEGIN
     DECLARE recent_changes INT;
     SELECT COUNT(*) INTO recent_changes
     FROM plate_change_requests pcr
-    JOIN change_request_status_types crst ON pcr.status_type_id = crst.id
+    JOIN change_request_status_types crst ON pcr.status_id = crst.id
     WHERE pcr.subscription_id = NEW.subscription_id AND crst.code = 'APPROVED'
-    AND pcr.reviewed_at >= DATE_SUB(NEW.requested_at, INTERVAL 6 MONTH);
+    AND pcr.reviewed_at >= DATE_SUB(NEW.created_at, INTERVAL 6 MONTH);
     
     IF recent_changes > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Solo se permite 1 cambio de placa cada 6 meses';
@@ -712,14 +712,14 @@ BEGIN
     DECLARE v_old_status VARCHAR(20);
     DECLARE plate_in_use INT;
     
-    SELECT code INTO v_new_status FROM change_request_status_types WHERE id = NEW.status_type_id;
-    SELECT code INTO v_old_status FROM change_request_status_types WHERE id = OLD.status_type_id;
+    SELECT code INTO v_new_status FROM change_request_status_types WHERE id = NEW.status_id;
+    SELECT code INTO v_old_status FROM change_request_status_types WHERE id = OLD.status_id;
     
     IF v_new_status = 'APPROVED' AND v_old_status = 'PENDING' THEN
         SELECT COUNT(*) INTO plate_in_use
         FROM subscriptions s
         JOIN subscription_status_types sst ON s.status_type_id = sst.id
-        WHERE s.license_plate = NEW.new_plate AND sst.code = 'ACTIVE' AND s.end_date > NOW();
+        WHERE s.license_plate = NEW.new_license_plate AND sst.code = 'ACTIVE' AND s.end_date > NOW();
         
         IF plate_in_use > 0 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nueva placa ya esta en otra suscripcion activa';
@@ -734,16 +734,16 @@ BEGIN
     DECLARE v_new_status VARCHAR(20);
     DECLARE v_old_status VARCHAR(20);
     
-    SELECT code INTO v_new_status FROM change_request_status_types WHERE id = NEW.status_type_id;
-    SELECT code INTO v_old_status FROM change_request_status_types WHERE id = OLD.status_type_id;
+    SELECT code INTO v_new_status FROM change_request_status_types WHERE id = NEW.status_id;
+    SELECT code INTO v_old_status FROM change_request_status_types WHERE id = OLD.status_id;
     
     IF v_new_status = 'APPROVED' AND v_old_status = 'PENDING' THEN
-        UPDATE subscriptions SET license_plate = NEW.new_plate, updated_at = NOW() WHERE id = NEW.subscription_id;
+        UPDATE subscriptions SET license_plate = NEW.new_license_plate, updated_at = NOW() WHERE id = NEW.subscription_id;
         
         INSERT INTO audit_log (user_id, module, entity, operation_type_id, description, previous_values, new_values)
         VALUES (NEW.reviewed_by, 'Back Office', 'subscriptions', (SELECT id FROM operation_types WHERE code = 'UPDATE'),
-                CONCAT('Cambio placa: ', NEW.old_plate, ' -> ', NEW.new_plate),
-                JSON_OBJECT('license_plate', NEW.old_plate), JSON_OBJECT('license_plate', NEW.new_plate));
+                CONCAT('Cambio placa: ', NEW.old_license_plate, ' -> ', NEW.new_license_plate),
+                JSON_OBJECT('license_plate', NEW.old_license_plate), JSON_OBJECT('license_plate', NEW.new_license_plate));
     END IF;
 END//
 
