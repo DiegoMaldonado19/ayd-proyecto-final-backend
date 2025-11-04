@@ -59,10 +59,12 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/logout").authenticated()
                         .requestMatchers("/auth/password/change").authenticated()
+                        .requestMatchers("/auth/password/change/legacy").authenticated()
                         .requestMatchers("/auth/2fa/enable").authenticated()
                         .requestMatchers("/auth/2fa/disable").authenticated()
                         .requestMatchers("/auth/profile").authenticated()
 
+                        .requestMatchers("/users/**").hasRole("Administrador")
                         .requestMatchers("/rates/**").hasRole("Administrador")
                         .requestMatchers("/branches/**").hasRole("Administrador")
                         .requestMatchers("/subscription-plans/**").hasRole("Administrador")
