@@ -74,14 +74,14 @@ class RateLimitFilterTest {
         when(request.getRequestURI()).thenReturn("/api/v1/auth/login");
         when(request.getMethod()).thenReturn("POST");
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(rateLimitService.isRateLimitExceeded("/api/v1/auth/login", "192.168.1.1", 5, 900))
+        when(rateLimitService.isRateLimitExceeded("/api/v1/auth/login", "192.168.1.1", 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded("/api/v1/auth/login", "192.168.1.1", 5, 900);
+        verify(rateLimitService).isRateLimitExceeded("/api/v1/auth/login", "192.168.1.1", 50, 900);
         verify(filterChain).doFilter(request, response);
         verify(response, never()).setStatus(anyInt());
     }
@@ -95,7 +95,7 @@ class RateLimitFilterTest {
         when(request.getRequestURI()).thenReturn(endpoint);
         when(request.getMethod()).thenReturn("POST");
         when(request.getRemoteAddr()).thenReturn(clientIp);
-        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 50, 900))
                 .thenReturn(true);
         when(rateLimitService.getRemainingLockTime(endpoint, clientIp))
                 .thenReturn(600L);
@@ -121,7 +121,7 @@ class RateLimitFilterTest {
         when(request.getRequestURI()).thenReturn(endpoint);
         when(request.getMethod()).thenReturn("POST");
         when(request.getRemoteAddr()).thenReturn(clientIp);
-        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 3, 300))
+        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 30, 300))
                 .thenReturn(true);
         when(rateLimitService.getRemainingLockTime(endpoint, clientIp))
                 .thenReturn(180L);
@@ -145,7 +145,7 @@ class RateLimitFilterTest {
         when(request.getRequestURI()).thenReturn(endpoint);
         when(request.getMethod()).thenReturn("POST");
         when(request.getRemoteAddr()).thenReturn(clientIp);
-        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 3, 3600))
+        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 20, 3600))
                 .thenReturn(true);
         when(rateLimitService.getRemainingLockTime(endpoint, clientIp))
                 .thenReturn(3000L);
@@ -170,14 +170,14 @@ class RateLimitFilterTest {
         when(request.getMethod()).thenReturn("POST");
         when(request.getHeader("X-Forwarded-For")).thenReturn(proxiedIp);
         lenient().when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-        when(rateLimitService.isRateLimitExceeded(endpoint, proxiedIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, proxiedIp, 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, proxiedIp, 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, proxiedIp, 50, 900);
         verify(filterChain).doFilter(request, response);
     }
 
@@ -192,14 +192,14 @@ class RateLimitFilterTest {
         when(request.getMethod()).thenReturn("POST");
         when(request.getHeader("X-Forwarded-For")).thenReturn(xForwardedFor);
         lenient().when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-        when(rateLimitService.isRateLimitExceeded(endpoint, firstIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, firstIp, 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, firstIp, 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, firstIp, 50, 900);
     }
 
     @Test
@@ -213,14 +213,14 @@ class RateLimitFilterTest {
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         when(request.getHeader("X-Real-IP")).thenReturn(realIp);
         lenient().when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-        when(rateLimitService.isRateLimitExceeded(endpoint, realIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, realIp, 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, realIp, 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, realIp, 50, 900);
     }
 
     @Test
@@ -235,14 +235,14 @@ class RateLimitFilterTest {
         when(request.getHeader("X-Real-IP")).thenReturn(null);
         when(request.getHeader("Proxy-Client-IP")).thenReturn(proxyClientIp);
         lenient().when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-        when(rateLimitService.isRateLimitExceeded(endpoint, proxyClientIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, proxyClientIp, 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, proxyClientIp, 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, proxyClientIp, 50, 900);
     }
 
     @Test
@@ -257,14 +257,14 @@ class RateLimitFilterTest {
         when(request.getHeader("X-Real-IP")).thenReturn(null);
         when(request.getHeader("Proxy-Client-IP")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn(remoteAddr);
-        when(rateLimitService.isRateLimitExceeded(endpoint, remoteAddr, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, remoteAddr, 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, remoteAddr, 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, remoteAddr, 50, 900);
     }
 
     @Test
@@ -292,14 +292,14 @@ class RateLimitFilterTest {
         when(request.getHeader("X-Real-IP")).thenReturn(null);
         when(request.getHeader("Proxy-Client-IP")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn(null);
-        when(rateLimitService.isRateLimitExceeded(endpoint, "unknown", 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, "unknown", 50, 900))
                 .thenReturn(false);
 
         // Act
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
-        verify(rateLimitService).isRateLimitExceeded(endpoint, "unknown", 5, 900);
+        verify(rateLimitService).isRateLimitExceeded(endpoint, "unknown", 50, 900);
     }
 
     @Test
@@ -312,7 +312,7 @@ class RateLimitFilterTest {
         when(request.getRequestURI()).thenReturn(endpoint);
         when(request.getMethod()).thenReturn("POST");
         when(request.getRemoteAddr()).thenReturn(clientIp);
-        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 5, 900))
+        when(rateLimitService.isRateLimitExceeded(endpoint, clientIp, 50, 900))
                 .thenReturn(true);
         when(rateLimitService.getRemainingLockTime(endpoint, clientIp))
                 .thenReturn(retryAfter);
