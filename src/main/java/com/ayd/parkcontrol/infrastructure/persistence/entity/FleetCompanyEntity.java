@@ -53,6 +53,13 @@ public class FleetCompanyEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Column(name = "admin_user_id")
+    private Long adminUserId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_user_id", insertable = false, updatable = false)
+    private UserEntity adminUser;
+
     @Builder.Default
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

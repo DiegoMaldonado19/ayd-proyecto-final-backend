@@ -39,6 +39,7 @@ public class UserController {
         private final UpdateUserStatusUseCase updateUserStatusUseCase;
         private final ListUsersByRoleUseCase listUsersByRoleUseCase;
         private final ListUsersByStatusUseCase listUsersByStatusUseCase;
+        private final GetCurrentUserUseCase getCurrentUserUseCase;
 
         @Operation(summary = "Listar usuarios", description = "Obtiene una lista paginada de usuarios del sistema con opciones de ordenamiento")
         @ApiResponses(value = {
@@ -188,6 +189,19 @@ public class UserController {
                         @Parameter(description = "Dirección de ordenamiento", example = "desc") @RequestParam(defaultValue = "desc") String sortDirection) {
                 PageResponse<UserResponse> response = listUsersByStatusUseCase.execute(isActive, page, size, sortBy,
                                 sortDirection);
+                return ResponseEntity.ok(ApiResponse.success(response));
+        }
+
+        @Operation(summary = "Obtener mi perfil", description = "Retorna la información del usuario autenticado actualmente")
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Perfil obtenido exitosamente", content = @Content(schema = @Schema(implementation = UserResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
+        })
+        @GetMapping("/me")
+        @PreAuthorize("isAuthenticated()")
+        public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
+                UserResponse response = getCurrentUserUseCase.execute();
                 return ResponseEntity.ok(ApiResponse.success(response));
         }
 }

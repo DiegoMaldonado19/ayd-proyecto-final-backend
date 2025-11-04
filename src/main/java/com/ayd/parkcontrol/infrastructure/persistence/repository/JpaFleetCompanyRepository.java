@@ -14,44 +14,46 @@ import java.util.Optional;
 @Repository
 public interface JpaFleetCompanyRepository extends JpaRepository<FleetCompanyEntity, Long> {
 
-    Optional<FleetCompanyEntity> findByTaxId(String taxId);
+        Optional<FleetCompanyEntity> findByTaxId(String taxId);
 
-    boolean existsByTaxId(String taxId);
+        Optional<FleetCompanyEntity> findByAdminUserId(Long adminUserId);
 
-    @Query("""
-            SELECT fc FROM FleetCompanyEntity fc
-            WHERE fc.isActive = true
-            ORDER BY fc.name ASC
-            """)
-    List<FleetCompanyEntity> findAllActive();
+        boolean existsByTaxId(String taxId);
 
-    @Query("""
-            SELECT fc FROM FleetCompanyEntity fc
-            WHERE fc.isActive = true
-            ORDER BY fc.name ASC
-            """)
-    Page<FleetCompanyEntity> findAllActive(Pageable pageable);
+        @Query("""
+                        SELECT fc FROM FleetCompanyEntity fc
+                        WHERE fc.isActive = true
+                        ORDER BY fc.name ASC
+                        """)
+        List<FleetCompanyEntity> findAllActive();
 
-    @Query("""
-            SELECT fc FROM FleetCompanyEntity fc
-            WHERE fc.isActive = :isActive
-            ORDER BY fc.name ASC
-            """)
-    Page<FleetCompanyEntity> findAllByIsActive(@Param("isActive") Boolean isActive, Pageable pageable);
+        @Query("""
+                        SELECT fc FROM FleetCompanyEntity fc
+                        WHERE fc.isActive = true
+                        ORDER BY fc.name ASC
+                        """)
+        Page<FleetCompanyEntity> findAllActive(Pageable pageable);
 
-    @Query("""
-            SELECT fc FROM FleetCompanyEntity fc
-            WHERE LOWER(fc.name) LIKE LOWER(CONCAT('%', :search, '%'))
-            OR LOWER(fc.taxId) LIKE LOWER(CONCAT('%', :search, '%'))
-            OR LOWER(fc.corporateEmail) LIKE LOWER(CONCAT('%', :search, '%'))
-            ORDER BY fc.name ASC
-            """)
-    Page<FleetCompanyEntity> searchFleets(@Param("search") String search, Pageable pageable);
+        @Query("""
+                        SELECT fc FROM FleetCompanyEntity fc
+                        WHERE fc.isActive = :isActive
+                        ORDER BY fc.name ASC
+                        """)
+        Page<FleetCompanyEntity> findAllByIsActive(@Param("isActive") Boolean isActive, Pageable pageable);
 
-    @Query("""
-            SELECT COUNT(fv) FROM FleetVehicleEntity fv
-            WHERE fv.companyId = :companyId
-            AND fv.isActive = true
-            """)
-    Long countActiveVehiclesByCompanyId(@Param("companyId") Long companyId);
+        @Query("""
+                        SELECT fc FROM FleetCompanyEntity fc
+                        WHERE LOWER(fc.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                        OR LOWER(fc.taxId) LIKE LOWER(CONCAT('%', :search, '%'))
+                        OR LOWER(fc.corporateEmail) LIKE LOWER(CONCAT('%', :search, '%'))
+                        ORDER BY fc.name ASC
+                        """)
+        Page<FleetCompanyEntity> searchFleets(@Param("search") String search, Pageable pageable);
+
+        @Query("""
+                        SELECT COUNT(fv) FROM FleetVehicleEntity fv
+                        WHERE fv.companyId = :companyId
+                        AND fv.isActive = true
+                        """)
+        Long countActiveVehiclesByCompanyId(@Param("companyId") Long companyId);
 }

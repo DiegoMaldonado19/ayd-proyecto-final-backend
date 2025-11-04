@@ -40,6 +40,25 @@ public class FleetDtoMapper {
                 .build();
     }
 
+    public FleetResponse toResponse(com.ayd.parkcontrol.domain.model.fleet.FleetCompany fleet) {
+        if (fleet == null) {
+            return null;
+        }
+
+        return FleetResponse.builder()
+                .id(fleet.getId())
+                .name(fleet.getName())
+                .taxId(fleet.getTaxId())
+                .contactName(fleet.getContactName())
+                .corporateEmail(fleet.getCorporateEmail())
+                .phone(fleet.getContactPhone())
+                .isActive(fleet.getIsActive())
+                .createdAt(fleet.getCreatedAt())
+                .updatedAt(fleet.getUpdatedAt())
+                .plateLimit(fleet.getMaxVehicles())
+                .build();
+    }
+
     public FleetVehicleResponse toVehicleResponse(FleetVehicleEntity vehicle) {
         if (vehicle == null) {
             return null;

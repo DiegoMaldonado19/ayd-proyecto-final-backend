@@ -40,53 +40,29 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
+                        // OPTIONS requests - always allow for CORS preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // Public authentication endpoints
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/2fa/verify").permitAll()
                         .requestMatchers("/auth/refresh").permitAll()
                         .requestMatchers("/auth/password/reset").permitAll()
 
+                        // Public Swagger/OpenAPI documentation
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-resources/**").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
 
+                        // Public actuator endpoints
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/info").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("Administrador")
 
-                        .requestMatchers("/auth/logout").authenticated()
-                        .requestMatchers("/auth/password/change").authenticated()
-                        .requestMatchers("/auth/password/change/legacy").authenticated()
-                        .requestMatchers("/auth/2fa/enable").authenticated()
-                        .requestMatchers("/auth/2fa/disable").authenticated()
-                        .requestMatchers("/auth/profile").authenticated()
-
-                        .requestMatchers("/users/**").hasRole("Administrador")
-                        .requestMatchers("/rates/**").hasRole("Administrador")
-                        .requestMatchers("/branches/**").hasRole("Administrador")
-                        .requestMatchers("/subscription-plans/**").hasRole("Administrador")
-                        .requestMatchers("/dashboard/**").hasAnyRole("Administrador", "Operador Sucursal")
-
-                        .requestMatchers("/subscriptions/**").authenticated()
-                        .requestMatchers("/tickets/**").hasAnyRole("Administrador", "Operador Sucursal")
-                        .requestMatchers("/occupancy/**").hasAnyRole("Administrador", "Operador Sucursal")
-
-                        .requestMatchers("/commerce/**").hasAnyRole("Administrador", "Operador Sucursal")
-                        .requestMatchers("/settlements/**").hasRole("Administrador")
-
-                        .requestMatchers("/plate-changes/**").hasRole("Operador Back Office")
-                        .requestMatchers("/temporal-permits/**").hasRole("Operador Back Office")
-
-                        .requestMatchers("/incidents/**")
-                        .hasAnyRole("Administrador", "Operador Sucursal", "Operador Back Office")
-                        .requestMatchers("/fleets/**")
-                        .hasAnyRole("Administrador", "Administrador Flotilla", "Operador Back Office")
-
-                        .requestMatchers("/reports/**").hasAnyRole("Administrador", "Operador Sucursal")
-
+                        // ALL OTHER requests require authentication
+                        // Authorization is delegated to @PreAuthorize annotations on controllers
+                        // This provides more granular control and avoids conflicts
                         .anyRequest().authenticated())
 
                 .exceptionHandling(exception -> exception

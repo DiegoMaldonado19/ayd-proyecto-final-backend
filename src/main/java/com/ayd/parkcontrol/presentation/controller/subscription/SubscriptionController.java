@@ -125,12 +125,13 @@ public class SubscriptionController {
         }
 
         @PutMapping("/{id}")
-        @PreAuthorize("hasAnyRole('Administrador', 'Cliente')")
-        @Operation(summary = "Renew subscription", description = "Renews an existing subscription with new period")
+        @PreAuthorize("hasRole('Administrador') or (hasRole('Cliente') and @subscriptionSecurity.isOwner(#id))")
+        @Operation(summary = "Renew subscription", description = "Renews an existing subscription with new period. Clients can only renew their own subscriptions.")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Subscription renewed successfully"),
                         @ApiResponse(responseCode = "400", description = "Invalid request data"),
                         @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "403", description = "Forbidden - Cannot renew subscription that doesn't belong to you"),
                         @ApiResponse(responseCode = "404", description = "Subscription not found"),
                         @ApiResponse(responseCode = "422", description = "Subscription cannot be renewed")
         })

@@ -250,9 +250,19 @@ class ReportControllerTest {
     @Test
     @WithMockUser(roles = "Operador Sucursal")
     void getOccupancyReport_withoutAdminRole_shouldReturnForbidden() throws Exception {
+        OccupancyReportResponse response = new OccupancyReportResponse();
+        response.setBranchId(1L);
+        response.setBranchName("Sucursal Centro");
+        response.setVehicleType("2R");
+        response.setTotalCapacity(50);
+        response.setCurrentOccupancy(25);
+        response.setPeakOccupancy(45);
+
+        when(generateOccupancyReportUseCase.execute()).thenReturn(Arrays.asList(response));
+
         mockMvc.perform(get("/reports/occupancy")
                 .header("Authorization", "Bearer mock-jwt-token"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

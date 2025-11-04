@@ -37,79 +37,79 @@ public class ReportController {
     private final GenerateFleetsReportUseCase generateFleetsReportUseCase;
     private final ExportReportUseCase exportReportUseCase;
 
-    @Operation(summary = "Reporte de ocupación", description = "Genera reporte de ocupación de sucursales")
+    @Operation(summary = "Reporte de ocupación", description = "Genera reporte de ocupación de sucursales. Operador Sucursal solo ve su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/occupancy")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<OccupancyReportResponse>>> getOccupancyReport() {
         List<OccupancyReportResponse> response = generateOccupancyReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Reporte de facturación", description = "Genera reporte de facturación por sucursal")
+    @Operation(summary = "Reporte de facturación", description = "Genera reporte de facturación por sucursal. Operador Sucursal solo ve su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/billing")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<BillingReportResponse>>> getBillingReport() {
         List<BillingReportResponse> response = generateBillingReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Reporte de suscripciones", description = "Genera reporte de suscripciones activas y vencidas")
+    @Operation(summary = "Reporte de suscripciones", description = "Genera reporte de suscripciones activas y vencidas. Operador Sucursal solo ve suscripciones de su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/subscriptions")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<?>>> getSubscriptionsReport() {
         List<?> response = generateSubscriptionReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Reporte de beneficios de comercios", description = "Genera reporte de horas gratis otorgadas por comercios afiliados")
+    @Operation(summary = "Reporte de beneficios de comercios", description = "Genera reporte de horas gratis otorgadas por comercios afiliados. Operador Sucursal solo ve comercios de su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/commerce-benefits")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<?>>> getCommerceBenefitsReport() {
         List<?> response = generateCommerceBenefitsReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Reporte de cortes de caja", description = "Genera reporte de cortes de caja por periodo")
+    @Operation(summary = "Reporte de cortes de caja", description = "Genera reporte de cortes de caja por periodo. Operador Sucursal solo ve su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/cash-closing")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<?>>> getCashClosingReport() {
         List<?> response = generateCashClosingReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Reporte de incidencias", description = "Genera reporte de incidencias registradas")
+    @Operation(summary = "Reporte de incidencias", description = "Genera reporte de incidencias registradas. Operador Sucursal solo ve incidencias de su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte generado exitosamente", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @GetMapping("/incidents")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<ApiResponse<List<?>>> getIncidentsReport() {
         List<?> response = generateIncidentsReportUseCase.execute();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -128,7 +128,7 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Exportar reporte", description = "Exporta un reporte en formato PDF, Excel o Imagen")
+    @Operation(summary = "Exportar reporte", description = "Exporta un reporte en formato PDF, Excel o Imagen. Operador Sucursal solo puede exportar reportes de su sucursal.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte exportado exitosamente", content = @Content(schema = @Schema(type = "string", format = "binary"))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Solicitud inválida", content = @Content),
@@ -136,7 +136,7 @@ public class ReportController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
     })
     @PostMapping("/export")
-    @PreAuthorize("hasRole('Administrador')")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
     public ResponseEntity<byte[]> exportReport(@Valid @RequestBody ExportReportRequest request) {
         byte[] fileContent = exportReportUseCase.execute(request);
 
