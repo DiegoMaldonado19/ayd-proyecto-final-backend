@@ -23,7 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/branches")
+@RequestMapping("/branches")
 @RequiredArgsConstructor
 @Tag(name = "Branches", description = "Branch management endpoints")
 @SecurityRequirement(name = "Bearer Authentication")

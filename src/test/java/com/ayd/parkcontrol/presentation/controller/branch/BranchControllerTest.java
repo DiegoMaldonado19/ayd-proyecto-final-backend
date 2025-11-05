@@ -86,7 +86,7 @@ class BranchControllerTest {
         when(createBranchUseCase.execute(any(CreateBranchRequest.class))).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(post("/api/v1/branches")
+        mockMvc.perform(post("/branches")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -112,7 +112,7 @@ class BranchControllerTest {
                 .thenReturn(pageResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/branches")
+        mockMvc.perform(get("/branches")
                 .param("page", "0")
                 .param("size", "20")
                 .param("sortBy", "name")
@@ -131,7 +131,7 @@ class BranchControllerTest {
         when(getBranchUseCase.execute(1L)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/branches/1"))
+        mockMvc.perform(get("/branches/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -151,7 +151,7 @@ class BranchControllerTest {
         when(updateBranchUseCase.execute(eq(1L), any(UpdateBranchRequest.class))).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(put("/api/v1/branches/1")
+        mockMvc.perform(put("/branches/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -168,7 +168,7 @@ class BranchControllerTest {
         when(deleteBranchUseCase.execute(1L)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(delete("/api/v1/branches/1"))
+        mockMvc.perform(delete("/branches/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.message").value("Branch deleted successfully"));
@@ -187,7 +187,7 @@ class BranchControllerTest {
         when(getCapacityUseCase.execute(1L)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/branches/1/capacity"))
+        mockMvc.perform(get("/branches/1/capacity"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.branch_id").value(1))
@@ -211,7 +211,7 @@ class BranchControllerTest {
         when(updateCapacityUseCase.execute(eq(1L), any(UpdateCapacityRequest.class))).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(put("/api/v1/branches/1/capacity")
+        mockMvc.perform(put("/branches/1/capacity")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -232,7 +232,7 @@ class BranchControllerTest {
         when(getScheduleUseCase.execute(1L)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/branches/1/schedule"))
+        mockMvc.perform(get("/branches/1/schedule"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.branch_id").value(1));
@@ -254,7 +254,7 @@ class BranchControllerTest {
         when(updateScheduleUseCase.execute(eq(1L), any(UpdateScheduleRequest.class))).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(put("/api/v1/branches/1/schedule")
+        mockMvc.perform(put("/branches/1/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -276,7 +276,7 @@ class BranchControllerTest {
         when(getOccupancyUseCase.execute(1L)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/branches/1/occupancy"))
+        mockMvc.perform(get("/branches/1/occupancy"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.branch_id").value(1))
@@ -297,7 +297,7 @@ class BranchControllerTest {
         request.setClosingTime("18:00");
 
         // When & Then
-        mockMvc.perform(post("/api/v1/branches")
+        mockMvc.perform(post("/branches")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
@@ -312,7 +312,7 @@ class BranchControllerTest {
         request.setAddress("Nueva Dirección 456");
 
         // When & Then
-        mockMvc.perform(put("/api/v1/branches/1")
+        mockMvc.perform(put("/branches/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
