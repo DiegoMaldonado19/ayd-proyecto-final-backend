@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -73,4 +74,7 @@ public class PlateChangeRequestResponse {
 
     @Schema(description = "Cantidad de evidencias adjuntas", example = "3")
     private Long evidence_count;
+    
+    @Schema(description = "Lista de evidencias adjuntas")
+    private List<EvidenceResponse> evidences;
 }

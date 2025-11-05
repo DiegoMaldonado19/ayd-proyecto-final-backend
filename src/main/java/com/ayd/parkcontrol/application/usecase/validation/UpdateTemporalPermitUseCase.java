@@ -34,15 +34,22 @@ public class UpdateTemporalPermitUseCase {
 
         validatePermitIsActive(permit);
 
+        // Log de valores actuales
+        log.debug("Current permit dates - Start: {}, End: {}", permit.getStartDate(), permit.getEndDate());
+
         if (request.getStartDate() != null) {
+            log.debug("Updating start date from {} to {}", permit.getStartDate(), request.getStartDate());
             permit.setStartDate(request.getStartDate());
         }
 
         if (request.getEndDate() != null) {
+            log.debug("Updating end date from {} to {}", permit.getEndDate(), request.getEndDate());
             permit.setEndDate(request.getEndDate());
         }
 
+        // Validar fechas antes de cualquier otra actualización
         if (permit.getStartDate() != null && permit.getEndDate() != null) {
+            log.debug("Validating permit dates before save - Start: {}, End: {}", permit.getStartDate(), permit.getEndDate());
             validatePermitDates(permit.getStartDate(), permit.getEndDate());
         }
 
@@ -56,16 +63,30 @@ public class UpdateTemporalPermitUseCase {
             permit.setAllowedBranches(allowedBranchesJson);
         }
 
-        TemporalPermitEntity updated = temporalPermitRepository.save(permit);
+        log.debug("About to save permit with dates - Start: {}, End: {}", permit.getStartDate(), permit.getEndDate());
 
-        TemporalPermitEntity loaded = temporalPermitRepository.findById(updated.getId())
-                .orElseThrow(() -> new BusinessRuleException("Failed to load updated permit"));
+        try {
+            TemporalPermitEntity updated = temporalPermitRepository.save(permit);
 
-        UserEntity approver = userRepository.findById(loaded.getApprovedBy()).orElse(null);
+            TemporalPermitEntity loaded = temporalPermitRepository.findById(updated.getId())
+                    .orElseThrow(() -> new BusinessRuleException("Failed to load updated permit"));
 
-        log.info("Temporal permit updated successfully: {}", id);
+            UserEntity approver = userRepository.findById(loaded.getApprovedBy()).orElse(null);
 
-        return mapper.toResponse(loaded, approver);
+            log.info("Temporal permit updated successfully: {}", id);
+
+            return mapper.toResponse(loaded, approver);
+        } catch (Exception e) {
+            log.error("Error saving temporal permit: {}", e.getMessage(), e);
+            
+            // Mejorar el mensaje de error para constraint de duración
+            if (e.getMessage() != null && e.getMessage().contains("chk_permit_duration")) {
+                long daysBetween = ChronoUnit.DAYS.between(permit.getStartDate().toLocalDate(), permit.getEndDate().toLocalDate());
+                throw new BusinessRuleException("La duración del permiso no puede exceder 30 días. Duración actual: " + daysBetween + " días");
+            }
+            
+            throw e;
+        }
     }
 
     private void validatePermitIsActive(TemporalPermitEntity permit) {
@@ -79,10 +100,13 @@ public class UpdateTemporalPermitUseCase {
             throw new BusinessRuleException("End date must be after start date");
         }
 
-        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+        // Usar la misma lógica que MySQL DATEDIFF (solo fechas, no horas)
+        long daysBetween = ChronoUnit.DAYS.between(startDate.toLocalDate(), endDate.toLocalDate());
         if (daysBetween > 30) {
-            throw new BusinessRuleException("Permit duration cannot exceed 30 days");
+            throw new BusinessRuleException("Permit duration cannot exceed 30 days. Current duration: " + daysBetween + " days");
         }
+        
+        log.debug("Permit dates validated successfully. Duration: {} days", daysBetween);
     }
 
     private void validateMaxUses(Integer newMaxUses, Integer currentUses) {

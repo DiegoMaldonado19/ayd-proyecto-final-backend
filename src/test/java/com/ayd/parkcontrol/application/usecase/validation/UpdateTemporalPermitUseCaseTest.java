@@ -175,4 +175,160 @@ class UpdateTemporalPermitUseCaseTest {
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessageContaining("cannot exceed 30 days");
     }
+
+    @Test
+    void execute_shouldValidateDateCalculationCorrectly_whenUpdatingDates() {
+        // Given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime validEndDate = now.plusDays(30); // Exactly 30 days
+        
+        UpdateTemporalPermitRequest request = UpdateTemporalPermitRequest.builder()
+                .startDate(now)
+                .endDate(validEndDate)
+                .build();
+
+        TemporalPermitStatusTypeEntity activeStatus = TemporalPermitStatusTypeEntity.builder()
+                .id(1)
+                .code("ACTIVE")
+                .build();
+
+        TemporalPermitEntity permit = TemporalPermitEntity.builder()
+                .id(1L)
+                .currentUses(0)
+                .maxUses(10)
+                .status(activeStatus)
+                .approvedBy(1L)
+                .build();
+
+        UserEntity approver = UserEntity.builder()
+                .id(1L)
+                .firstName("Admin")
+                .lastName("User")
+                .build();
+
+        TemporalPermitResponse expectedResponse = TemporalPermitResponse.builder()
+                .id(1L)
+                .maxUses(10)
+                .currentUses(0)
+                .build();
+
+        when(temporalPermitRepository.findById(1L)).thenReturn(Optional.of(permit));
+        when(temporalPermitRepository.save(any(TemporalPermitEntity.class))).thenReturn(permit);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(approver));
+        when(mapper.toResponse(any(TemporalPermitEntity.class), any(UserEntity.class)))
+                .thenReturn(expectedResponse);
+
+        // When
+        TemporalPermitResponse result = useCase.execute(1L, request);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(permit.getStartDate()).isEqualTo(now);
+        assertThat(permit.getEndDate()).isEqualTo(validEndDate);
+
+        verify(temporalPermitRepository).save(permit);
+    }
+
+    @Test
+    void execute_shouldThrowBusinessRuleException_whenDurationExceeds30Days() {
+        // Given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime invalidEndDate = now.plusDays(31); // 31 days - should fail
+        
+        UpdateTemporalPermitRequest request = UpdateTemporalPermitRequest.builder()
+                .startDate(now)
+                .endDate(invalidEndDate)
+                .build();
+
+        TemporalPermitStatusTypeEntity activeStatus = TemporalPermitStatusTypeEntity.builder()
+                .id(1)
+                .code("ACTIVE")
+                .build();
+
+        TemporalPermitEntity permit = TemporalPermitEntity.builder()
+                .id(1L)
+                .currentUses(0)
+                .maxUses(10)
+                .status(activeStatus)
+                .build();
+
+        when(temporalPermitRepository.findById(1L)).thenReturn(Optional.of(permit));
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(1L, request))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("Permit duration cannot exceed 30 days. Current duration: 31 days");
+
+        verify(temporalPermitRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_shouldThrowBusinessRuleException_whenEndDateBeforeStartDate() {
+        // Given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime invalidEndDate = now.minusDays(1); // End date before start date
+        
+        UpdateTemporalPermitRequest request = UpdateTemporalPermitRequest.builder()
+                .startDate(now)
+                .endDate(invalidEndDate)
+                .build();
+
+        TemporalPermitStatusTypeEntity activeStatus = TemporalPermitStatusTypeEntity.builder()
+                .id(1)
+                .code("ACTIVE")
+                .build();
+
+        TemporalPermitEntity permit = TemporalPermitEntity.builder()
+                .id(1L)
+                .currentUses(0)
+                .maxUses(10)
+                .status(activeStatus)
+                .build();
+
+        when(temporalPermitRepository.findById(1L)).thenReturn(Optional.of(permit));
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(1L, request))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessage("End date must be after start date");
+
+        verify(temporalPermitRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_shouldHandleDatabaseConstraintError_withImprovedMessage() {
+        // Given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDate = now.plusDays(25);
+        
+        UpdateTemporalPermitRequest request = UpdateTemporalPermitRequest.builder()
+                .startDate(now)
+                .endDate(endDate)
+                .build();
+
+        TemporalPermitStatusTypeEntity activeStatus = TemporalPermitStatusTypeEntity.builder()
+                .id(1)
+                .code("ACTIVE")
+                .build();
+
+        TemporalPermitEntity permit = TemporalPermitEntity.builder()
+                .id(1L)
+                .currentUses(0)
+                .maxUses(10)
+                .status(activeStatus)
+                .build();
+
+        when(temporalPermitRepository.findById(1L)).thenReturn(Optional.of(permit));
+        
+        // Simulate database constraint violation
+        RuntimeException dbException = new RuntimeException("CONSTRAINT 'chk_permit_duration' failed");
+        when(temporalPermitRepository.save(any(TemporalPermitEntity.class))).thenThrow(dbException);
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(1L, request))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("La duración del permiso no puede exceder 30 días");
+
+        verify(temporalPermitRepository).save(any());
+    }
 }

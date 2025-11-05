@@ -11,6 +11,7 @@ import com.ayd.parkcontrol.domain.repository.UserRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.ChangeRequestStatusEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.PlateChangeReasonEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaChangeRequestStatusRepository;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaDocumentTypeRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaPlateChangeReasonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +45,9 @@ class GetPlateChangeRequestUseCaseTest {
 
     @Mock
     private JpaChangeRequestStatusRepository statusRepository;
+
+    @Mock
+    private JpaDocumentTypeRepository documentTypeRepository;
 
     @Mock
     private PlateChangeRequestDtoMapper mapper;
@@ -101,8 +106,8 @@ class GetPlateChangeRequestUseCaseTest {
         statusEntity.setName("Pendiente");
         when(statusRepository.findById(1)).thenReturn(Optional.of(statusEntity));
 
-        when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
-        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), any(), anyLong()))
+        when(evidenceRepository.findByChangeRequestId(anyLong())).thenReturn(Arrays.asList());
+        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), any(), anyList()))
                 .thenReturn(mockResponse);
 
         PlateChangeRequestResponse result = getPlateChangeRequestUseCase.execute(1L);
@@ -114,7 +119,7 @@ class GetPlateChangeRequestUseCaseTest {
 
         verify(plateChangeRequestRepository).findById(1L);
         verify(userRepository).findById(1L);
-        verify(evidenceRepository).countByChangeRequestId(1L);
+        verify(evidenceRepository).findByChangeRequestId(1L);
     }
 
     @Test
