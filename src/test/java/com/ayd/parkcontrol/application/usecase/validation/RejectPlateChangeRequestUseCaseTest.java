@@ -59,6 +59,12 @@ class RejectPlateChangeRequestUseCaseTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private com.ayd.parkcontrol.application.port.notification.EmailService emailService;
+
+    @Mock
+    private com.ayd.parkcontrol.domain.repository.SubscriptionRepository subscriptionRepository;
+
     @InjectMocks
     private RejectPlateChangeRequestUseCase rejectPlateChangeRequestUseCase;
 
@@ -133,6 +139,13 @@ class RejectPlateChangeRequestUseCaseTest {
                 .id(1L)
                 .firstName("Juan")
                 .lastName("Pérez")
+                .email("juan.perez@example.com")
+                .build();
+
+        com.ayd.parkcontrol.domain.model.subscription.Subscription mockSubscription = 
+            com.ayd.parkcontrol.domain.model.subscription.Subscription.builder()
+                .id(1L)
+                .licensePlate("P-123456")
                 .build();
 
         when(plateChangeRequestRepository.findById(1L)).thenReturn(Optional.of(mockPlateChangeRequest));
@@ -141,6 +154,7 @@ class RejectPlateChangeRequestUseCaseTest {
         when(statusRepository.findByCode("REJECTED")).thenReturn(Optional.of(rejectedStatus));
         when(plateChangeRequestRepository.save(any(PlateChangeRequest.class))).thenReturn(mockPlateChangeRequest);
         when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
+        when(subscriptionRepository.findById(1L)).thenReturn(Optional.of(mockSubscription));
         when(reasonRepository.findById(1)).thenReturn(Optional.of(reason));
         when(evidenceRepository.countByChangeRequestId(1L)).thenReturn(2L);
         when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
@@ -159,6 +173,13 @@ class RejectPlateChangeRequestUseCaseTest {
         verify(plateChangeRequestRepository).save(argThat(request -> request.getStatusId() == 3 &&
                 request.getReviewedBy() == 2L &&
                 request.getReviewNotes().equals("Documentación insuficiente")));
+        verify(emailService).sendPlateChangeRejectedNotification(
+                eq("juan.perez@example.com"),
+                eq("Juan Pérez"),
+                eq("P-123456"),
+                eq("P-654321"),
+                eq("Documentación insuficiente")
+        );
     }
 
     @Test
@@ -257,5 +278,62 @@ class RejectPlateChangeRequestUseCaseTest {
         // Then
         assertThat(result).isNotNull();
         verify(plateChangeRequestRepository).save(argThat(request -> request.getReviewedBy() == null));
+    }
+
+    @Test
+    void shouldCompleteRejection_whenEmailNotificationFails() {
+        // Given
+        ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
+        pendingStatus.setId(1);
+        pendingStatus.setCode("PENDING");
+        pendingStatus.setName("Pendiente");
+
+        ChangeRequestStatusEntity rejectedStatus = new ChangeRequestStatusEntity();
+        rejectedStatus.setId(3);
+        rejectedStatus.setCode("REJECTED");
+        rejectedStatus.setName("Rechazado");
+
+        PlateChangeReasonEntity reason = new PlateChangeReasonEntity();
+        reason.setId(1);
+        reason.setName("Venta de vehículo");
+
+        User requestUser = User.builder()
+                .id(1L)
+                .firstName("Juan")
+                .lastName("Pérez")
+                .email("juan.perez@example.com")
+                .build();
+
+        com.ayd.parkcontrol.domain.model.subscription.Subscription mockSubscription = 
+            com.ayd.parkcontrol.domain.model.subscription.Subscription.builder()
+                .id(1L)
+                .licensePlate("P-123456")
+                .build();
+
+        when(plateChangeRequestRepository.findById(1L)).thenReturn(Optional.of(mockPlateChangeRequest));
+        when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
+        when(userRepository.findByEmail("backoffice@parkcontrol.com")).thenReturn(Optional.of(mockReviewer));
+        when(statusRepository.findByCode("REJECTED")).thenReturn(Optional.of(rejectedStatus));
+        when(plateChangeRequestRepository.save(any(PlateChangeRequest.class))).thenReturn(mockPlateChangeRequest);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
+        when(subscriptionRepository.findById(1L)).thenReturn(Optional.of(mockSubscription));
+        when(reasonRepository.findById(1)).thenReturn(Optional.of(reason));
+        when(evidenceRepository.countByChangeRequestId(1L)).thenReturn(2L);
+        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
+                .thenReturn(mockResponse);
+
+        // Simular fallo en el envío del email
+        doThrow(new RuntimeException("Email service unavailable"))
+                .when(emailService).sendPlateChangeRejectedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
+
+        // When
+        PlateChangeRequestResponse result = rejectPlateChangeRequestUseCase.execute(1L, rejectRequest);
+
+        // Then - El proceso debe completarse exitosamente a pesar del fallo en la notificación
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus_code()).isEqualTo("REJECTED");
+
+        verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
+        verify(emailService).sendPlateChangeRejectedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 }

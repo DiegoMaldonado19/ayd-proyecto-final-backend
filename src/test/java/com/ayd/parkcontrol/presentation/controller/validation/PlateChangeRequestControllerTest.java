@@ -111,6 +111,8 @@ class PlateChangeRequestControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_Operador Back Office", username = "test@parkcontrol.com")
     void approvePlateChange_ShouldReturnApprovedRequest() throws Exception {
+        // Este test verifica la aprobación de solicitudes de cambio de placa
+        // El use case internamente envía una notificación por email al usuario
         ApprovePlateChangeRequest request = ApprovePlateChangeRequest.builder()
                 .review_notes("Documentación verificada correctamente")
                 .build();
@@ -137,6 +139,8 @@ class PlateChangeRequestControllerTest {
     @Test
     @WithMockUser(authorities = "ROLE_Operador Back Office", username = "test@parkcontrol.com")
     void rejectPlateChange_ShouldReturnRejectedRequest() throws Exception {
+        // Este test verifica el rechazo de solicitudes de cambio de placa
+        // El use case internamente envía una notificación por email al usuario
         RejectPlateChangeRequest request = RejectPlateChangeRequest.builder()
                 .review_notes("Documentación incompleta")
                 .build();
