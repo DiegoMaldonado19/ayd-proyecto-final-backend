@@ -1,15 +1,14 @@
 package com.ayd.parkcontrol.presentation.controller.report;
 
-import com.ayd.parkcontrol.application.dto.request.report.ExportReportRequest;
 import com.ayd.parkcontrol.application.dto.response.report.BillingReportResponse;
 import com.ayd.parkcontrol.application.dto.response.report.OccupancyReportResponse;
 import com.ayd.parkcontrol.application.usecase.report.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ayd.parkcontrol.application.usecase.report.export.ExportBillingReportUseCase;
+import com.ayd.parkcontrol.application.usecase.report.export.ExportOccupancyReportUseCase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -18,10 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -31,9 +28,6 @@ class ReportControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private GenerateOccupancyReportUseCase generateOccupancyReportUseCase;
@@ -57,7 +51,10 @@ class ReportControllerTest {
     private GenerateFleetsReportUseCase generateFleetsReportUseCase;
 
     @MockitoBean
-    private ExportReportUseCase exportReportUseCase;
+    private ExportOccupancyReportUseCase exportOccupancyReportUseCase;
+
+    @MockitoBean
+    private ExportBillingReportUseCase exportBillingReportUseCase;
 
     @Test
     @WithMockUser(roles = "Administrador")
@@ -188,63 +185,78 @@ class ReportControllerTest {
 
     @Test
     @WithMockUser(roles = "Administrador")
-    void exportReport_withPdfFormat_shouldReturnPdfFile() throws Exception {
-        ExportReportRequest request = new ExportReportRequest();
-        request.setReportType("OCCUPANCY");
-        request.setExportFormat("PDF");
-
+    void exportOccupancyReport_withPdfFormat_shouldReturnPdfFile() throws Exception {
         byte[] mockPdfContent = "Mock PDF Content".getBytes();
-        when(exportReportUseCase.execute(any(ExportReportRequest.class))).thenReturn(mockPdfContent);
+        when(exportOccupancyReportUseCase.export("PDF")).thenReturn(mockPdfContent);
 
-        mockMvc.perform(post("/reports/export")
-                .header("Authorization", "Bearer mock-jwt-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(get("/reports/occupancy/export")
+                .param("format", "PDF")
+                .header("Authorization", "Bearer mock-jwt-token"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Disposition"))
-                .andExpect(header().string("Content-Disposition", "attachment; filename=\"report.pdf\""))
-                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"reporte-ocupacion.pdf\""))
+                .andExpect(header().string("Content-Type", "application/pdf"))
                 .andExpect(content().bytes(mockPdfContent));
     }
 
     @Test
     @WithMockUser(roles = "Administrador")
-    void exportReport_withExcelFormat_shouldReturnExcelFile() throws Exception {
-        ExportReportRequest request = new ExportReportRequest();
-        request.setReportType("BILLING");
-        request.setExportFormat("EXCEL");
+    void exportOccupancyReport_withCsvFormat_shouldReturnCsvFile() throws Exception {
+        byte[] mockCsvContent = "branch_id,branch_name,total_capacity".getBytes();
+        when(exportOccupancyReportUseCase.export("CSV")).thenReturn(mockCsvContent);
 
-        byte[] mockExcelContent = "Mock Excel Content".getBytes();
-        when(exportReportUseCase.execute(any(ExportReportRequest.class))).thenReturn(mockExcelContent);
-
-        mockMvc.perform(post("/reports/export")
-                .header("Authorization", "Bearer mock-jwt-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(get("/reports/occupancy/export")
+                .param("format", "CSV")
+                .header("Authorization", "Bearer mock-jwt-token"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Disposition"))
-                .andExpect(header().string("Content-Disposition", "attachment; filename=\"report.excel\""))
-                .andExpect(content().contentType(MediaType.parseMediaType("application/vnd.ms-excel")));
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"reporte-ocupacion.csv\""))
+                .andExpect(header().string("Content-Type", "text/csv"));
     }
 
     @Test
     @WithMockUser(roles = "Administrador")
-    void exportReport_withImageFormat_shouldReturnImageFile() throws Exception {
-        ExportReportRequest request = new ExportReportRequest();
-        request.setReportType("SUBSCRIPTIONS");
-        request.setExportFormat("IMAGE");
+    void exportOccupancyReport_withImageFormat_shouldReturnImageFile() throws Exception {
+        byte[] mockImageContent = "Mock PNG Image".getBytes();
+        when(exportOccupancyReportUseCase.export("PNG")).thenReturn(mockImageContent);
 
-        byte[] mockImageContent = "Mock Image Content".getBytes();
-        when(exportReportUseCase.execute(any(ExportReportRequest.class))).thenReturn(mockImageContent);
-
-        mockMvc.perform(post("/reports/export")
-                .header("Authorization", "Bearer mock-jwt-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(get("/reports/occupancy/export")
+                .param("format", "PNG")
+                .header("Authorization", "Bearer mock-jwt-token"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Disposition"))
-                .andExpect(header().string("Content-Disposition", "attachment; filename=\"report.image\""))
-                .andExpect(content().contentType(MediaType.IMAGE_PNG));
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"reporte-ocupacion.png\""))
+                .andExpect(header().string("Content-Type", "image/png"));
+    }
+
+    @Test
+    @WithMockUser(roles = "Administrador")
+    void exportBillingReport_withPdfFormat_shouldReturnPdfFile() throws Exception {
+        byte[] mockPdfContent = "Mock Billing PDF".getBytes();
+        when(exportBillingReportUseCase.export("PDF")).thenReturn(mockPdfContent);
+
+        mockMvc.perform(get("/reports/billing/export")
+                .param("format", "PDF")
+                .header("Authorization", "Bearer mock-jwt-token"))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Content-Disposition"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"reporte-facturacion.pdf\""))
+                .andExpect(header().string("Content-Type", "application/pdf"));
+    }
+
+    @Test
+    @WithMockUser(roles = "Administrador")
+    void exportBillingReport_withCsvFormat_shouldReturnCsvFile() throws Exception {
+        byte[] mockCsvContent = "branch_id,branch_name,total_revenue".getBytes();
+        when(exportBillingReportUseCase.export("CSV")).thenReturn(mockCsvContent);
+
+        mockMvc.perform(get("/reports/billing/export")
+                .param("format", "CSV")
+                .header("Authorization", "Bearer mock-jwt-token"))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Content-Disposition"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"reporte-facturacion.csv\""))
+                .andExpect(header().string("Content-Type", "text/csv"));
     }
 
     @Test
@@ -267,15 +279,19 @@ class ReportControllerTest {
 
     @Test
     @WithMockUser(roles = "Cliente")
-    void exportReport_withoutAdminRole_shouldReturnForbidden() throws Exception {
-        ExportReportRequest request = new ExportReportRequest();
-        request.setReportType("OCCUPANCY");
-        request.setExportFormat("PDF");
+    void exportOccupancyReport_withoutAuthorizedRole_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/reports/occupancy/export")
+                .param("format", "PDF")
+                .header("Authorization", "Bearer mock-jwt-token"))
+                .andExpect(status().isForbidden());
+    }
 
-        mockMvc.perform(post("/reports/export")
-                .header("Authorization", "Bearer mock-jwt-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+    @Test
+    @WithMockUser(roles = "Cliente")
+    void exportBillingReport_withoutAuthorizedRole_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/reports/billing/export")
+                .param("format", "PDF")
+                .header("Authorization", "Bearer mock-jwt-token"))
                 .andExpect(status().isForbidden());
     }
 }

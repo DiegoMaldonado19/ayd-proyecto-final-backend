@@ -536,6 +536,23 @@ CREATE TABLE plate_change_files (
     INDEX idx_file (stored_file_id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE change_request_evidences (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    change_request_id BIGINT NOT NULL,
+    document_type_id INT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_url VARCHAR(500) NOT NULL,
+    file_size BIGINT,
+    uploaded_by VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_change_evidence_request FOREIGN KEY (change_request_id) REFERENCES plate_change_requests(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_change_evidence_document_type FOREIGN KEY (document_type_id) REFERENCES document_types(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    INDEX idx_change_request_id (change_request_id),
+    INDEX idx_document_type_id (document_type_id),
+    INDEX idx_uploaded_at (uploaded_at),
+    CONSTRAINT chk_file_size_positive CHECK (file_size IS NULL OR file_size > 0)
+) ENGINE=InnoDB;
+
 CREATE TABLE temporal_permits (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     subscription_id BIGINT NOT NULL,

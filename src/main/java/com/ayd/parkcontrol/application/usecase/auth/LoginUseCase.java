@@ -125,12 +125,11 @@ public class LoginUseCase {
 
     private String getRoleName(Integer roleTypeId) {
         return switch (roleTypeId) {
-            case 1 -> "ADMIN";
-            case 2 -> "BRANCH_OPERATOR";
-            case 3 -> "BACK_OFFICE";
-            case 4 -> "CLIENT";
-            case 5 -> "COMPANY";
-            case 6 -> "COMMERCE";
+            case 1 -> "Administrador";
+            case 2 -> "Operador Sucursal";
+            case 3 -> "Operador Back Office";
+            case 4 -> "Cliente";
+            case 5 -> "Administrador Flotilla";
             default -> "UNKNOWN";
         };
     }

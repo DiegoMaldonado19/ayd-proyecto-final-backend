@@ -1,20 +1,17 @@
 package com.ayd.parkcontrol.presentation.controller.report;
 
-import com.ayd.parkcontrol.application.dto.request.report.ExportReportRequest;
 import com.ayd.parkcontrol.application.dto.response.common.ApiResponse;
 import com.ayd.parkcontrol.application.dto.response.report.BillingReportResponse;
 import com.ayd.parkcontrol.application.dto.response.report.OccupancyReportResponse;
 import com.ayd.parkcontrol.application.usecase.report.*;
+import com.ayd.parkcontrol.application.usecase.report.export.ExportBillingReportUseCase;
+import com.ayd.parkcontrol.application.usecase.report.export.ExportOccupancyReportUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +32,10 @@ public class ReportController {
     private final GenerateCashClosingReportUseCase generateCashClosingReportUseCase;
     private final GenerateIncidentsReportUseCase generateIncidentsReportUseCase;
     private final GenerateFleetsReportUseCase generateFleetsReportUseCase;
-    private final ExportReportUseCase exportReportUseCase;
+
+    // Export use cases
+    private final ExportOccupancyReportUseCase exportOccupancyReportUseCase;
+    private final ExportBillingReportUseCase exportBillingReportUseCase;
 
     @Operation(summary = "Reporte de ocupación", description = "Genera reporte de ocupación de sucursales. Operador Sucursal solo ve su sucursal.")
     @ApiResponses(value = {
@@ -128,29 +128,68 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "Exportar reporte", description = "Exporta un reporte en formato PDF, Excel o Imagen. Operador Sucursal solo puede exportar reportes de su sucursal.")
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte exportado exitosamente", content = @Content(schema = @Schema(type = "string", format = "binary"))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Solicitud inválida", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content)
-    })
-    @PostMapping("/export")
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
-    public ResponseEntity<byte[]> exportReport(@Valid @RequestBody ExportReportRequest request) {
-        byte[] fileContent = exportReportUseCase.execute(request);
+    // ==================== Endpoints de Exportación ====================
 
-        String fileName = "report." + request.getExportFormat().toLowerCase();
-        MediaType mediaType = switch (request.getExportFormat().toUpperCase()) {
-            case "PDF" -> MediaType.APPLICATION_PDF;
-            case "EXCEL" -> MediaType.parseMediaType("application/vnd.ms-excel");
-            case "IMAGE" -> MediaType.IMAGE_PNG;
-            default -> MediaType.APPLICATION_OCTET_STREAM;
-        };
+    @Operation(summary = "Exportar reporte de ocupación", description = "Exporta el reporte de ocupación en formato PDF, CSV o PNG. Operador Sucursal solo ve su sucursal.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte exportado exitosamente", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Formato no soportado", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos", content = @Content)
+    })
+    @GetMapping("/occupancy/export")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
+    public ResponseEntity<byte[]> exportOccupancyReport(
+            @RequestParam(name = "format", defaultValue = "PDF") String format) {
+        byte[] content = exportOccupancyReportUseCase.export(format);
+        return buildExportResponse(content, format, "reporte-ocupacion");
+    }
+
+    @Operation(summary = "Exportar reporte de facturación", description = "Exporta el reporte de facturación en formato PDF, CSV o PNG. Operador Sucursal solo ve su sucursal.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reporte exportado exitosamente", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Formato no soportado", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos", content = @Content)
+    })
+    @GetMapping("/billing/export")
+    @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
+    public ResponseEntity<byte[]> exportBillingReport(
+            @RequestParam(name = "format", defaultValue = "PDF") String format) {
+        byte[] content = exportBillingReportUseCase.export(format);
+        return buildExportResponse(content, format, "reporte-facturacion");
+    }
+
+    // ==================== Helper Methods ====================
+
+    private ResponseEntity<byte[]> buildExportResponse(byte[] content, String format, String baseFileName) {
+        String extension;
+        String mediaType;
+
+        switch (format.toUpperCase()) {
+            case "PDF":
+                extension = "pdf";
+                mediaType = "application/pdf";
+                break;
+            case "CSV":
+                extension = "csv";
+                mediaType = "text/csv";
+                break;
+            case "PNG":
+            case "IMAGE":
+                extension = "png";
+                mediaType = "image/png";
+                break;
+            default:
+                extension = "txt";
+                mediaType = "text/plain";
+        }
+
+        String fileName = baseFileName + "." + extension;
 
         return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .body(fileContent);
+                .header("Content-Type", mediaType)
+                .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                .body(content);
     }
 }
