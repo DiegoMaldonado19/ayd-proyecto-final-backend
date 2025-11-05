@@ -7,6 +7,8 @@ import com.ayd.parkcontrol.domain.model.validation.ChangeRequestEvidence;
 import com.ayd.parkcontrol.domain.model.validation.PlateChangeRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class PlateChangeRequestDtoMapper {
 
@@ -44,6 +46,32 @@ public class PlateChangeRequestDtoMapper {
                 .created_at(request.getCreatedAt())
                 .updated_at(request.getUpdatedAt())
                 .evidence_count(evidenceCount)
+                .build();
+    }
+
+    public PlateChangeRequestResponse toResponse(PlateChangeRequest request, String userName, String reasonName,
+            String statusCode, String statusName, String reviewerName, List<EvidenceResponse> evidences) {
+        return PlateChangeRequestResponse.builder()
+                .id(request.getId())
+                .subscription_id(request.getSubscriptionId())
+                .user_id(request.getUserId())
+                .user_name(userName)
+                .old_license_plate(request.getOldLicensePlate())
+                .new_license_plate(request.getNewLicensePlate())
+                .reason_id(request.getReasonId())
+                .reason_name(reasonName)
+                .notes(request.getNotes())
+                .status_id(request.getStatusId())
+                .status_code(statusCode)
+                .status_name(statusName)
+                .reviewed_by(request.getReviewedBy())
+                .reviewer_name(reviewerName)
+                .reviewed_at(request.getReviewedAt())
+                .review_notes(request.getReviewNotes())
+                .created_at(request.getCreatedAt())
+                .updated_at(request.getUpdatedAt())
+                .evidence_count(evidences != null ? (long) evidences.size() : 0L)
+                .evidences(evidences)
                 .build();
     }
 

@@ -63,6 +63,9 @@ class ApprovePlateChangeRequestUseCaseTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private com.ayd.parkcontrol.application.port.notification.EmailService emailService;
+
     @InjectMocks
     private ApprovePlateChangeRequestUseCase approvePlateChangeRequestUseCase;
 
@@ -135,8 +138,13 @@ class ApprovePlateChangeRequestUseCaseTest {
         reasonEntity.setName("Robo");
         when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(User.builder().firstName("Juan").lastName("Pérez").build()));
+        User requestUser = User.builder()
+                .id(1L)
+                .firstName("Juan")
+                .lastName("Pérez")
+                .email("juan.perez@example.com")
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
         when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
         when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
                 .thenReturn(mockResponse);
@@ -148,6 +156,13 @@ class ApprovePlateChangeRequestUseCaseTest {
 
         verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
         verify(subscriptionRepository).save(argThat(subscription -> subscription.getLicensePlate().equals("P-654321")));
+        verify(emailService).sendPlateChangeApprovedNotification(
+                eq("juan.perez@example.com"),
+                eq("Juan Pérez"),
+                eq("P-123456"),
+                eq("P-654321"),
+                eq("Documentación verificada")
+        );
     }
 
     @Test
@@ -176,5 +191,59 @@ class ApprovePlateChangeRequestUseCaseTest {
                 .hasMessageContaining("Solo se pueden aprobar solicitudes con estado PENDIENTE");
 
         verify(plateChangeRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_shouldCompleteApproval_whenEmailNotificationFails() {
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("backoffice@parkcontrol.com");
+
+        when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
+
+        ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
+        pendingStatus.setId(1);
+        pendingStatus.setCode("PENDING");
+        when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
+
+        ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
+        approvedStatus.setId(2);
+        approvedStatus.setCode("APPROVED");
+        approvedStatus.setName("Aprobado");
+        when(statusRepository.findByCode("APPROVED")).thenReturn(Optional.of(approvedStatus));
+
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockReviewer));
+        when(plateChangeRequestRepository.save(any(PlateChangeRequest.class))).thenReturn(mockPlateChangeRequest);
+        when(subscriptionRepository.findById(anyLong())).thenReturn(Optional.of(mockSubscription));
+        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(mockSubscription);
+
+        PlateChangeReasonEntity reasonEntity = new PlateChangeReasonEntity();
+        reasonEntity.setName("Robo");
+        when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
+
+        User requestUser = User.builder()
+                .id(1L)
+                .firstName("Juan")
+                .lastName("Pérez")
+                .email("juan.perez@example.com")
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
+        when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
+        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
+                .thenReturn(mockResponse);
+
+        // Simular fallo en el envío del email
+        doThrow(new RuntimeException("Email service unavailable"))
+                .when(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
+
+        PlateChangeRequestResponse result = approvePlateChangeRequestUseCase.execute(1L, approveRequest);
+
+        // El proceso debe completarse exitosamente a pesar del fallo en la notificación
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus_code()).isEqualTo("APPROVED");
+
+        verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
+        verify(subscriptionRepository).save(any(Subscription.class));
+        verify(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 }

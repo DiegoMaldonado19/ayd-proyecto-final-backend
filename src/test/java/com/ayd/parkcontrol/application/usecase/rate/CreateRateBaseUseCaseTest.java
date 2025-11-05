@@ -3,6 +3,7 @@ package com.ayd.parkcontrol.application.usecase.rate;
 import com.ayd.parkcontrol.application.dto.request.rate.CreateRateBaseRequest;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBaseResponse;
 import com.ayd.parkcontrol.application.mapper.RateDtoMapper;
+import com.ayd.parkcontrol.domain.exception.ActiveRateBaseExistsException;
 import com.ayd.parkcontrol.domain.model.rate.RateBase;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.RateBaseHistoryEntity;
 import com.ayd.parkcontrol.infrastructure.persistence.entity.UserEntity;
@@ -14,12 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,5 +133,43 @@ class CreateRateBaseUseCaseTest {
                 .hasMessageContaining("User not found");
 
         verify(rateRepository, never()).save(any());
+    }
+
+    @Test
+    void execute_shouldThrowActiveRateBaseExistsException_whenDatabaseConstraintViolated() {
+        // Given
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("admin@parkcontrol.com");
+        when(userRepository.findByEmail("admin@parkcontrol.com")).thenReturn(Optional.of(userEntity));
+        when(rateRepository.findAllActive()).thenReturn(Collections.emptyList());
+        
+        DataAccessResourceFailureException dbException = new DataAccessResourceFailureException(
+                "Solo puede existir una tarifa base activa");
+        when(rateRepository.save(any(RateBaseHistoryEntity.class))).thenThrow(dbException);
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(ActiveRateBaseExistsException.class)
+                .hasMessageContaining("Una tarifa base ya se encuentra activa");
+
+        verify(rateRepository).save(any(RateBaseHistoryEntity.class));
+    }
+
+    @Test
+    void execute_shouldRethrowOriginalException_whenUnexpectedDatabaseError() {
+        // Given
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("admin@parkcontrol.com");
+        when(userRepository.findByEmail("admin@parkcontrol.com")).thenReturn(Optional.of(userEntity));
+        when(rateRepository.findAllActive()).thenReturn(Collections.emptyList());
+        
+        DataAccessResourceFailureException dbException = new DataAccessResourceFailureException(
+                "Connection timeout");
+        when(rateRepository.save(any(RateBaseHistoryEntity.class))).thenThrow(dbException);
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(request))
+                .isInstanceOf(DataAccessResourceFailureException.class)
+                .hasMessage("Connection timeout");
     }
 }

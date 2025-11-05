@@ -8,4 +8,8 @@ public interface EmailService {
     void sendPasswordResetEmail(String to, String code);
 
     void sendPasswordChangedNotification(String to, String userName);
+
+    void sendPlateChangeApprovedNotification(String to, String userName, String oldPlate, String newPlate, String reviewNotes);
+
+    void sendPlateChangeRejectedNotification(String to, String userName, String oldPlate, String newPlate, String reviewNotes);
 }

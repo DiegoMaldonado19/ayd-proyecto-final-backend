@@ -1,5 +1,6 @@
 package com.ayd.parkcontrol.application.usecase.validation;
 
+import com.ayd.parkcontrol.application.dto.response.validation.EvidenceResponse;
 import com.ayd.parkcontrol.application.dto.response.validation.PlateChangeRequestResponse;
 import com.ayd.parkcontrol.application.mapper.PlateChangeRequestDtoMapper;
 import com.ayd.parkcontrol.domain.exception.PlateChangeRequestNotFoundException;
@@ -7,11 +8,15 @@ import com.ayd.parkcontrol.domain.repository.ChangeRequestEvidenceRepository;
 import com.ayd.parkcontrol.domain.repository.PlateChangeRequestRepository;
 import com.ayd.parkcontrol.domain.repository.UserRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaChangeRequestStatusRepository;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaDocumentTypeRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaPlateChangeReasonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class GetPlateChangeRequestUseCase {
     private final ChangeRequestEvidenceRepository evidenceRepository;
     private final JpaPlateChangeReasonRepository reasonRepository;
     private final JpaChangeRequestStatusRepository statusRepository;
+    private final JpaDocumentTypeRepository documentTypeRepository;
     private final PlateChangeRequestDtoMapper mapper;
 
     @Transactional(readOnly = true)
@@ -48,8 +54,21 @@ public class GetPlateChangeRequestUseCase {
                 .map(u -> u.getFirstName() + " " + u.getLastName())
                 .orElse(null) : null;
 
-        long evidenceCount = evidenceRepository.countByChangeRequestId(request.getId());
+        // Obtener todas las evidencias
+        var evidences = evidenceRepository.findByChangeRequestId(request.getId());
+        
+        List<EvidenceResponse> evidenceResponses = evidences.stream()
+                .map(evidence -> {
+                    var documentType = documentTypeRepository.findById(evidence.getDocumentTypeId()).orElse(null);
+                    String documentTypeCode = documentType != null ? documentType.getCode() : "UNKNOWN";
+                    String documentTypeName = documentType != null ? documentType.getName() : "Unknown";
+                    
+                    return mapper.toEvidenceResponse(evidence, documentTypeCode, documentTypeName);
+                })
+                .collect(Collectors.toList());
 
-        return mapper.toResponse(request, userName, reasonName, statusCode, statusName, reviewerName, evidenceCount);
+        log.info("Found {} evidences for plate change request {}", evidenceResponses.size(), id);
+
+        return mapper.toResponse(request, userName, reasonName, statusCode, statusName, reviewerName, evidenceResponses);
     }
 }

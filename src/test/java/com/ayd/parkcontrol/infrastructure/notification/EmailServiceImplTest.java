@@ -177,4 +177,100 @@ class EmailServiceImplTest {
         // Verificar que se envió con soporte HTML (implícito en MimeMessageHelper)
         verify(mailSender).send(any(MimeMessage.class));
     }
+
+    @Test
+    void sendPlateChangeApprovedNotification_shouldSendEmailSuccessfully() {
+        String to = "user@example.com";
+        String userName = "John Doe";
+        String oldPlate = "ABC123";
+        String newPlate = "XYZ789";
+        String reviewNotes = "Documentación verificada correctamente";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeApprovedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        ArgumentCaptor<MimeMessage> messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(messageCaptor.capture());
+        verify(mailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendPlateChangeApprovedNotification_shouldSendWithoutReviewNotes() {
+        String to = "user@example.com";
+        String userName = "Jane Smith";
+        String oldPlate = "OLD123";
+        String newPlate = "NEW456";
+        String reviewNotes = null;
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeApprovedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        verify(mailSender).send(any(MimeMessage.class));
+        verify(mailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendPlateChangeRejectedNotification_shouldSendEmailSuccessfully() {
+        String to = "user@example.com";
+        String userName = "John Doe";
+        String oldPlate = "ABC123";
+        String newPlate = "XYZ789";
+        String reviewNotes = "Documentación incompleta";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeRejectedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        ArgumentCaptor<MimeMessage> messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(messageCaptor.capture());
+        verify(mailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendPlateChangeRejectedNotification_shouldSendWithoutReviewNotes() {
+        String to = "user@example.com";
+        String userName = "Jane Smith";
+        String oldPlate = "OLD123";
+        String newPlate = "NEW456";
+        String reviewNotes = "";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeRejectedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        verify(mailSender).send(any(MimeMessage.class));
+        verify(mailSender).createMimeMessage();
+    }
+
+    @Test
+    void sendPlateChangeApprovedNotification_shouldContainCorrectPlates() {
+        String to = "user@example.com";
+        String userName = "Test User";
+        String oldPlate = "TEST123";
+        String newPlate = "TEST456";
+        String reviewNotes = "Test notes";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeApprovedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        verify(mailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendPlateChangeRejectedNotification_shouldContainCorrectPlates() {
+        String to = "user@example.com";
+        String userName = "Test User";
+        String oldPlate = "TEST123";
+        String newPlate = "TEST456";
+        String reviewNotes = "Reason for rejection";
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendPlateChangeRejectedNotification(to, userName, oldPlate, newPlate, reviewNotes);
+
+        verify(mailSender).send(any(MimeMessage.class));
+    }
 }
