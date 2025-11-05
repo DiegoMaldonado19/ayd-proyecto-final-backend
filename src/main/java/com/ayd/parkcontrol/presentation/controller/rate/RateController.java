@@ -1,6 +1,6 @@
 package com.ayd.parkcontrol.presentation.controller.rate;
 
-import com.ayd.parkcontrol.application.dto.request.rate.CreateRateBaseRequest;
+import com.ayd.parkcontrol.application.dto.request.rate.UpdateRateBaseRequest;
 import com.ayd.parkcontrol.application.dto.request.rate.UpdateBranchRateRequest;
 import com.ayd.parkcontrol.application.dto.response.common.ApiResponse;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBaseResponse;
@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +29,7 @@ public class RateController {
 
         private final GetCurrentRateBaseUseCase getCurrentRateBaseUseCase;
         private final GetRateBaseHistoryUseCase getRateBaseHistoryUseCase;
-        private final CreateRateBaseUseCase createRateBaseUseCase;
+        private final UpdateRateBaseUseCase updateRateBaseUseCase;
         private final ListRateBranchesUseCase listRateBranchesUseCase;
         private final GetRateBranchUseCase getRateBranchUseCase;
         private final UpdateBranchRateUseCase updateBranchRateUseCase;
@@ -59,19 +58,19 @@ public class RateController {
                 return ResponseEntity.ok(ApiResponse.success(response, "Rate history retrieved successfully"));
         }
 
-        @PostMapping("/base")
+        @PutMapping("/base")
         @PreAuthorize("hasRole('Administrador')")
-        @Operation(summary = "Create new base rate", description = "Creates a new base rate and deactivates the previous one. Only accessible by administrators.")
+        @Operation(summary = "Update current base rate", description = "Updates the current base rate and deactivates the previous one for historical record. Only accessible by administrators.")
         @ApiResponses(value = {
-                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Rate created successfully", content = @Content(schema = @Schema(implementation = RateBaseResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Base rate updated successfully", content = @Content(schema = @Schema(implementation = RateBaseResponse.class))),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request data"),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Business rule violation")
         })
-        public ResponseEntity<ApiResponse<RateBaseResponse>> createBaseRate(
-                        @Valid @RequestBody CreateRateBaseRequest request) {
-                RateBaseResponse response = createRateBaseUseCase.execute(request);
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(ApiResponse.success(response, "Base rate created successfully"));
+        public ResponseEntity<ApiResponse<RateBaseResponse>> updateBaseRate(
+                        @Valid @RequestBody UpdateRateBaseRequest request) {
+                RateBaseResponse response = updateRateBaseUseCase.execute(request);
+                return ResponseEntity.ok()
+                                .body(ApiResponse.success(response, "Base rate updated successfully"));
         }
 
         @GetMapping("/branches")

@@ -1,6 +1,6 @@
 package com.ayd.parkcontrol.application.usecase.rate;
 
-import com.ayd.parkcontrol.application.dto.request.rate.CreateRateBaseRequest;
+import com.ayd.parkcontrol.application.dto.request.rate.UpdateRateBaseRequest;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBaseResponse;
 import com.ayd.parkcontrol.application.mapper.RateDtoMapper;
 import com.ayd.parkcontrol.domain.exception.ActiveRateBaseExistsException;
@@ -23,15 +23,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CreateRateBaseUseCase {
+public class UpdateRateBaseUseCase {
 
     private final JpaRateBaseHistoryRepository rateRepository;
     private final JpaUserRepository userRepository;
     private final RateDtoMapper mapper;
 
     @Transactional
-    public RateBaseResponse execute(CreateRateBaseRequest request) {
-        log.info("Creating new base rate with amount: {}", request.getAmountPerHour());
+    public RateBaseResponse execute(UpdateRateBaseRequest request) {
+        log.info("Updating base rate with new amount: {}", request.getAmountPerHour());
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();

@@ -1,6 +1,6 @@
 package com.ayd.parkcontrol.application.usecase.rate;
 
-import com.ayd.parkcontrol.application.dto.request.rate.CreateRateBaseRequest;
+import com.ayd.parkcontrol.application.dto.request.rate.UpdateRateBaseRequest;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBaseResponse;
 import com.ayd.parkcontrol.application.mapper.RateDtoMapper;
 import com.ayd.parkcontrol.domain.exception.ActiveRateBaseExistsException;
@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateRateBaseUseCaseTest {
+class UpdateRateBaseUseCaseTest {
 
     @Mock
     private JpaRateBaseHistoryRepository rateRepository;
@@ -50,9 +50,9 @@ class CreateRateBaseUseCaseTest {
     private Authentication authentication;
 
     @InjectMocks
-    private CreateRateBaseUseCase useCase;
+    private UpdateRateBaseUseCase useCase;
 
-    private CreateRateBaseRequest request;
+    private UpdateRateBaseRequest request;
     private UserEntity userEntity;
     private RateBaseHistoryEntity oldRateEntity;
     private RateBaseHistoryEntity newRateEntity;
@@ -61,7 +61,7 @@ class CreateRateBaseUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        request = CreateRateBaseRequest.builder()
+        request = UpdateRateBaseRequest.builder()
                 .amountPerHour(new BigDecimal("7.50"))
                 .build();
 
@@ -102,7 +102,7 @@ class CreateRateBaseUseCaseTest {
     }
 
     @Test
-    void execute_shouldCreateNewRateAndDeactivateOldOne() {
+    void execute_shouldUpdateBaseRateAndDeactivateOldOne() {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("admin@parkcontrol.com");
         when(userRepository.findByEmail("admin@parkcontrol.com")).thenReturn(Optional.of(userEntity));

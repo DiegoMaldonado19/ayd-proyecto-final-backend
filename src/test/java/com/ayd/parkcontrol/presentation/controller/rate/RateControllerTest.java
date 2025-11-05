@@ -1,6 +1,6 @@
 package com.ayd.parkcontrol.presentation.controller.rate;
 
-import com.ayd.parkcontrol.application.dto.request.rate.CreateRateBaseRequest;
+import com.ayd.parkcontrol.application.dto.request.rate.UpdateRateBaseRequest;
 import com.ayd.parkcontrol.application.dto.request.rate.UpdateBranchRateRequest;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBaseResponse;
 import com.ayd.parkcontrol.application.dto.response.rate.RateBranchResponse;
@@ -48,7 +48,7 @@ class RateControllerTest {
         private GetRateBaseHistoryUseCase getRateBaseHistoryUseCase;
 
         @MockitoBean
-        private CreateRateBaseUseCase createRateBaseUseCase;
+        private UpdateRateBaseUseCase updateRateBaseUseCase;
 
         @MockitoBean
         private ListRateBranchesUseCase listRateBranchesUseCase;
@@ -64,7 +64,7 @@ class RateControllerTest {
 
         private RateBaseResponse mockRateBaseResponse;
         private RateBranchResponse mockRateBranchResponse;
-        private CreateRateBaseRequest createRateBaseRequest;
+        private UpdateRateBaseRequest updateRateBaseRequest;
         private UpdateBranchRateRequest updateBranchRateRequest;
 
         @BeforeEach
@@ -86,7 +86,7 @@ class RateControllerTest {
                                 .isActive(true)
                                 .build();
 
-                createRateBaseRequest = CreateRateBaseRequest.builder()
+                updateRateBaseRequest = UpdateRateBaseRequest.builder()
                                 .amountPerHour(new BigDecimal("7.50"))
                                 .build();
 
@@ -152,29 +152,29 @@ class RateControllerTest {
 
         @Test
         @WithMockUser(roles = "Administrador")
-        void createBaseRate_shouldReturnCreated_whenValidRequest() throws Exception {
-                when(createRateBaseUseCase.execute(any(CreateRateBaseRequest.class)))
+        void updateBaseRate_shouldReturnOk_whenValidRequest() throws Exception {
+                when(updateRateBaseUseCase.execute(any(UpdateRateBaseRequest.class)))
                                 .thenReturn(mockRateBaseResponse);
 
-                mockMvc.perform(post("/rates/base")
+                mockMvc.perform(put("/rates/base")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(createRateBaseRequest)))
-                                .andExpect(status().isCreated())
+                                .content(objectMapper.writeValueAsString(updateRateBaseRequest)))
+                                .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value("success"))
-                                .andExpect(jsonPath("$.message").value("Base rate created successfully"))
+                                .andExpect(jsonPath("$.message").value("Base rate updated successfully"))
                                 .andExpect(jsonPath("$.data.id").value(1))
                                 .andExpect(jsonPath("$.data.amount_per_hour").value(5.00));
         }
 
         @Test
         @WithMockUser(roles = "Administrador")
-        void createBaseRate_shouldReturnBadRequest_whenInvalidAmount() throws Exception {
-                CreateRateBaseRequest invalidRequest = CreateRateBaseRequest.builder()
+        void updateBaseRate_shouldReturnBadRequest_whenInvalidAmount() throws Exception {
+                UpdateRateBaseRequest invalidRequest = UpdateRateBaseRequest.builder()
                                 .amountPerHour(new BigDecimal("-5.00"))
                                 .build();
 
-                mockMvc.perform(post("/rates/base")
+                mockMvc.perform(put("/rates/base")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -183,11 +183,11 @@ class RateControllerTest {
 
         @Test
         @WithMockUser(roles = "Operador Sucursal")
-        void createBaseRate_shouldReturnForbidden_whenNotAdmin() throws Exception {
-                mockMvc.perform(post("/rates/base")
+        void updateBaseRate_shouldReturnForbidden_whenNotAdmin() throws Exception {
+                mockMvc.perform(put("/rates/base")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(createRateBaseRequest)))
+                                .content(objectMapper.writeValueAsString(updateRateBaseRequest)))
                                 .andExpect(status().isForbidden());
         }
 

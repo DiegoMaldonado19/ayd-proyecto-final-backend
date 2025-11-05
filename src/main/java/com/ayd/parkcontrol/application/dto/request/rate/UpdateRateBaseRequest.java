@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateRateBaseRequest {
+public class UpdateRateBaseRequest {
 
     @NotNull(message = "amount_per_hour is required")
     @DecimalMin(value = "0.01", message = "amount_per_hour must be greater than 0")
