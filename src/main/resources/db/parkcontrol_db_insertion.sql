@@ -194,6 +194,12 @@ INSERT INTO stored_files (document_type_id, file_name, file_url, container_name,
 (2, 'tarjeta-circulacion-vst333.jpg', 'https://parkcontrolstorage.blob.core.windows.net/incident-evidence/2025/10/tarjeta-vst333.jpg', 'incident-evidence', '2025/10/tarjeta-vst333.jpg', 198432, 'image/jpeg', 4, '2025-10-06 18:26:00'),
 (6, 'foto-vehiculo-vst333.jpg', 'https://parkcontrolstorage.blob.core.windows.net/incident-evidence/2025/10/foto-vst333.jpg', 'incident-evidence', '2025/10/foto-vst333.jpg', 312456, 'image/jpeg', 4, '2025-10-06 18:27:00');
 
+INSERT INTO change_request_evidences (change_request_id, document_type_id, file_name, file_url, file_size, uploaded_by, uploaded_at) VALUES
+(1, 3, 'denuncia-robo-mno345.pdf', 'https://parkcontrolstorage.blob.core.windows.net/plate-change-evidence/2025/10/denuncia-robo-mno345.pdf', 456789, 'Lucia Fernandez', '2025-10-15 10:30:00'),
+(1, 1, 'dpi-lucia-fernandez.jpg', 'https://parkcontrolstorage.blob.core.windows.net/plate-change-evidence/2025/10/dpi-lucia-fernandez.jpg', 287654, 'Lucia Fernandez', '2025-10-15 10:31:00'),
+(1, 2, 'tarjeta-circulacion-mno345.jpg', 'https://parkcontrolstorage.blob.core.windows.net/plate-change-evidence/2025/10/tarjeta-circulacion-mno345.jpg', 223456, 'Lucia Fernandez', '2025-10-15 10:32:00'),
+(1, 6, 'foto-vehiculo-mno345.jpg', 'https://parkcontrolstorage.blob.core.windows.net/plate-change-evidence/2025/10/foto-vehiculo-mno345.jpg', 334567, 'Lucia Fernandez', '2025-10-15 10:33:00');
+
 INSERT INTO incidents (ticket_id, branch_id, incident_type_id, reported_by_user_id, license_plate, description, resolution_notes, is_resolved, resolved_by_user_id, resolved_at) VALUES
 (15, 3, 1, 4, 'VST-333', 'Ticket extraviado - Cliente Jorge Mejia presenta documentacion', 'Ticket localizado por placa. Cliente presento documentos validos. Salida procesada normalmente.', TRUE, 4, '2025-10-06 18:30:00');
 
@@ -248,6 +254,8 @@ UNION ALL SELECT 'Comercios Afiliados', COUNT(*) FROM affiliated_businesses
 UNION ALL SELECT 'Horas Gratis Otorgadas', COUNT(*) FROM business_free_hours
 UNION ALL SELECT 'Excedentes Cobrados', COUNT(*) FROM subscription_overages
 UNION ALL SELECT 'Incidencias', COUNT(*) FROM incidents
+UNION ALL SELECT 'Solicitudes Cambio Placa', COUNT(*) FROM plate_change_requests
+UNION ALL SELECT 'Evidencias Cambio Placa', COUNT(*) FROM change_request_evidences
 UNION ALL SELECT 'Permisos Temporales', COUNT(*) FROM temporal_permits
 UNION ALL SELECT 'Empresas Flotilla', COUNT(*) FROM fleet_companies
 UNION ALL SELECT 'Vehiculos Flotilla', COUNT(*) FROM fleet_vehicles
