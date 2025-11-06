@@ -7,6 +7,7 @@ import com.ayd.parkcontrol.domain.model.subscription.Subscription;
 import com.ayd.parkcontrol.domain.model.subscription.SubscriptionPlan;
 import com.ayd.parkcontrol.domain.model.user.User;
 import com.ayd.parkcontrol.domain.repository.SubscriptionRepository;
+import com.ayd.parkcontrol.security.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,7 @@ class GetMySubscriptionBalanceUseCaseTest {
     private GetMySubscriptionBalanceUseCase getMySubscriptionBalanceUseCase;
 
     private User mockUser;
+    private CustomUserDetails mockUserDetails;
     private Subscription activeSubscription;
     private SubscriptionBalanceResponse balanceResponse;
 
@@ -57,6 +59,8 @@ class GetMySubscriptionBalanceUseCaseTest {
                 .firstName("Test")
                 .lastName("User")
                 .build();
+
+        mockUserDetails = new CustomUserDetails(mockUser, "Cliente");
 
         SubscriptionPlan plan = SubscriptionPlan.builder()
                 .id(1L)
@@ -97,7 +101,7 @@ class GetMySubscriptionBalanceUseCaseTest {
                 SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(mockUser);
+            when(authentication.getPrincipal()).thenReturn(mockUserDetails);
             when(subscriptionRepository.findActiveByUserId(100L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionMapper.toBalanceResponse(activeSubscription)).thenReturn(balanceResponse);
 
@@ -120,7 +124,7 @@ class GetMySubscriptionBalanceUseCaseTest {
                 SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(mockUser);
+            when(authentication.getPrincipal()).thenReturn(mockUserDetails);
             when(subscriptionRepository.findActiveByUserId(100L)).thenReturn(Optional.empty());
 
             assertThrows(BusinessRuleException.class, () -> getMySubscriptionBalanceUseCase.execute());
@@ -137,7 +141,7 @@ class GetMySubscriptionBalanceUseCaseTest {
                 SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(mockUser);
+            when(authentication.getPrincipal()).thenReturn(mockUserDetails);
             when(subscriptionRepository.findActiveByUserId(100L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionMapper.toBalanceResponse(activeSubscription)).thenReturn(balanceResponse);
 
@@ -157,10 +161,11 @@ class GetMySubscriptionBalanceUseCaseTest {
                     .id(999L)
                     .email("different@example.com")
                     .build();
+            CustomUserDetails differentUserDetails = new CustomUserDetails(differentUser, "Cliente");
 
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(differentUser);
+            when(authentication.getPrincipal()).thenReturn(differentUserDetails);
             when(subscriptionRepository.findActiveByUserId(999L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionMapper.toBalanceResponse(activeSubscription)).thenReturn(balanceResponse);
 
@@ -178,7 +183,7 @@ class GetMySubscriptionBalanceUseCaseTest {
                 SecurityContextHolder.class)) {
             mockedSecurityContextHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(mockUser);
+            when(authentication.getPrincipal()).thenReturn(mockUserDetails);
             when(subscriptionRepository.findActiveByUserId(100L)).thenReturn(Optional.of(activeSubscription));
             when(subscriptionMapper.toBalanceResponse(activeSubscription)).thenReturn(balanceResponse);
 
