@@ -32,25 +32,37 @@ public class RenewSubscriptionUseCase {
         validateCanRenew(subscription);
 
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime newStartDate;
         LocalDateTime newEndDate;
 
-        if (Boolean.TRUE.equals(request.getIsAnnual())) {
-            newEndDate = subscription.getEndDate().plusYears(1);
+        // Si la suscripción ya venció, el nuevo periodo empieza ahora
+        // Si aún está activa, el nuevo periodo empieza cuando termine la actual
+        if (subscription.getEndDate().isBefore(now)) {
+            newStartDate = now;
         } else {
-            newEndDate = subscription.getEndDate().plusMonths(1);
+            newStartDate = subscription.getEndDate();
+        }
+
+        // Calcular fecha de fin según el tipo de renovación
+        if (Boolean.TRUE.equals(request.getIsAnnual())) {
+            newEndDate = newStartDate.plusYears(1);
+        } else {
+            newEndDate = newStartDate.plusMonths(1);
         }
 
         subscription.setConsumedHours(BigDecimal.ZERO);
         subscription.setNotified80Percent(false);
         subscription.setIsAnnual(request.getIsAnnual());
         subscription.setAutoRenewEnabled(request.getAutoRenewEnabled() != null ? request.getAutoRenewEnabled() : false);
-        subscription.setEndDate(newEndDate);
         subscription.setPurchaseDate(now);
+        subscription.setStartDate(newStartDate);
+        subscription.setEndDate(newEndDate);
         subscription.setUpdatedAt(now);
 
         Subscription renewed = subscriptionRepository.save(subscription);
 
-        log.info("Subscription renewed successfully: {}", subscriptionId);
+        log.info("Subscription renewed successfully: {} - New period: {} to {}", 
+                subscriptionId, newStartDate, newEndDate);
 
         return subscriptionMapper.toSubscriptionResponse(renewed);
     }
