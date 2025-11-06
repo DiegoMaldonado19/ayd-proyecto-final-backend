@@ -5,14 +5,10 @@ import com.ayd.parkcontrol.domain.repository.RoleRepository;
 import com.ayd.parkcontrol.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -36,14 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         String roleName = role.getName();
         log.debug("User {} has role: {}", username, roleName);
 
-        return User.builder()
-                .username(user.getEmail())
-                .password(user.getPasswordHash())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName)))
-                .accountExpired(false)
-                .accountLocked(!user.getIsActive())
-                .credentialsExpired(user.getRequiresPasswordChange())
-                .disabled(!user.getIsActive())
-                .build();
+        // Return CustomUserDetails instead of Spring's User
+        return new CustomUserDetails(user, roleName);
     }
 }

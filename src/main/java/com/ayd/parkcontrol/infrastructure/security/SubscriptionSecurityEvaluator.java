@@ -1,6 +1,8 @@
 package com.ayd.parkcontrol.infrastructure.security;
 
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaSubscriptionRepository;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaUserRepository;
+import com.ayd.parkcontrol.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class SubscriptionSecurityEvaluator {
 
     private final JpaSubscriptionRepository jpaSubscriptionRepository;
+    private final JpaUserRepository jpaUserRepository;
 
     /**
      * Verifies if the current authenticated user is the owner of the subscription.
@@ -30,10 +33,25 @@ public class SubscriptionSecurityEvaluator {
             return false;
         }
 
-        String email = authentication.getName();
+        // Get user ID from CustomUserDetails
+        Long userId;
+        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            userId = userDetails.getUserId();
+        } else {
+            // Fallback: get user by email
+            String email = authentication.getName();
+            userId = jpaUserRepository.findByEmail(email)
+                    .map(user -> user.getId())
+                    .orElse(null);
+            
+            if (userId == null) {
+                return false;
+            }
+        }
 
+        // Compare userId directly without loading the user entity
         return jpaSubscriptionRepository.findById(subscriptionId)
-                .map(subscription -> subscription.getUser().getEmail().equals(email))
+                .map(subscription -> subscription.getUserId().equals(userId))
                 .orElse(false);
     }
 

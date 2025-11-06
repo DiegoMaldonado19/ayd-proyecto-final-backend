@@ -4,8 +4,8 @@ import com.ayd.parkcontrol.application.dto.response.subscription.SubscriptionRes
 import com.ayd.parkcontrol.application.mapper.SubscriptionDtoMapper;
 import com.ayd.parkcontrol.domain.exception.BusinessRuleException;
 import com.ayd.parkcontrol.domain.model.subscription.Subscription;
-import com.ayd.parkcontrol.domain.model.user.User;
 import com.ayd.parkcontrol.domain.repository.SubscriptionRepository;
+import com.ayd.parkcontrol.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -24,8 +24,8 @@ public class GetMySubscriptionUseCase {
     @Transactional(readOnly = true)
     public SubscriptionResponse execute() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        Long userId = user.getId();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
 
         log.info("Retrieving active subscription for user ID: {}", userId);
 
