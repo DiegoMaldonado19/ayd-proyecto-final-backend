@@ -40,6 +40,7 @@ public class PlateChangeRequestController {
         private final UploadPlateChangeEvidenceUseCase uploadPlateChangeEvidenceUseCase;
         private final ListPendingPlateChangeRequestsUseCase listPendingPlateChangeRequestsUseCase;
         private final ListPlateChangeRequestsByUserUseCase listPlateChangeRequestsByUserUseCase;
+        private final GetPlateChangeEvidencesUseCase getPlateChangeEvidencesUseCase;
 
         @Operation(summary = "Listar solicitudes de cambio de placa", description = "Obtiene todas las solicitudes de cambio de placa del sistema")
         @ApiResponses(value = {
@@ -164,6 +165,21 @@ public class PlateChangeRequestController {
         public ResponseEntity<ApiResponse<List<PlateChangeRequestResponse>>> listRequestsByUser(
                         @Parameter(description = "ID del usuario", example = "1") @PathVariable Long userId) {
                 List<PlateChangeRequestResponse> response = listPlateChangeRequestsByUserUseCase.execute(userId);
+                return ResponseEntity.ok(ApiResponse.success(response));
+        }
+
+        @Operation(summary = "Listar evidencias de solicitud", description = "Obtiene todas las evidencias de una solicitud de cambio de placa específica")
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Evidencias obtenidas exitosamente", content = @Content(schema = @Schema(implementation = EvidenceResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "No autenticado", content = @Content),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sin permisos para acceder", content = @Content),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Solicitud no encontrada", content = @Content)
+        })
+        @GetMapping("/{id}/evidences")
+        @PreAuthorize("hasAnyRole('Administrador', 'Cliente', 'Operador Back Office')")
+        public ResponseEntity<ApiResponse<List<EvidenceResponse>>> getEvidences(
+                        @Parameter(description = "ID de la solicitud", example = "1") @PathVariable Long id) {
+                List<EvidenceResponse> response = getPlateChangeEvidencesUseCase.execute(id);
                 return ResponseEntity.ok(ApiResponse.success(response));
         }
 }
