@@ -35,8 +35,7 @@ public class SubscriptionPlanController {
     private final DeleteSubscriptionPlanUseCase deleteSubscriptionPlanUseCase;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('Administrador', 'Operador Back Office')")
-    @Operation(summary = "List all active subscription plans", description = "Returns a list of all active subscription plans ordered by hierarchy")
+    @Operation(summary = "List all active subscription plans", description = "Returns a list of all active subscription plans ordered by hierarchy. This endpoint is public for clients to view available plans.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Plans retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
