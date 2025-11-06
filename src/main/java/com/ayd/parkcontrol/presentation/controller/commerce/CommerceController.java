@@ -2,6 +2,7 @@ package com.ayd.parkcontrol.presentation.controller.commerce;
 
 import com.ayd.parkcontrol.application.dto.request.commerce.ConfigureBenefitRequest;
 import com.ayd.parkcontrol.application.dto.request.commerce.CreateCommerceRequest;
+import com.ayd.parkcontrol.application.dto.request.commerce.UpdateCommerceBenefitRequest;
 import com.ayd.parkcontrol.application.dto.request.commerce.UpdateCommerceRequest;
 import com.ayd.parkcontrol.application.dto.response.commerce.BenefitResponse;
 import com.ayd.parkcontrol.application.dto.response.commerce.CommerceResponse;
@@ -37,6 +38,8 @@ public class CommerceController {
     private final DeleteCommerceUseCase deleteCommerceUseCase;
     private final ConfigureBenefitUseCase configureBenefitUseCase;
     private final GetCommerceBenefitsUseCase getCommerceBenefitsUseCase;
+    private final UpdateCommerceBenefitUseCase updateCommerceBenefitUseCase;
+    private final DeleteCommerceBenefitUseCase deleteCommerceBenefitUseCase;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('Administrador', 'Operador Sucursal')")
@@ -139,5 +142,36 @@ public class CommerceController {
             @Valid @RequestBody ConfigureBenefitRequest request) {
         BenefitResponse benefit = configureBenefitUseCase.execute(id, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(benefit);
+    }
+
+    @PutMapping("/{id}/benefits/{benefitId}")
+    @PreAuthorize("hasRole('Administrador')")
+    @Operation(summary = "Update commerce benefit", description = "Update an existing benefit configuration for a commerce")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Benefit updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Commerce, benefit, benefit type, or settlement period not found")
+    })
+    public ResponseEntity<BenefitResponse> updateCommerceBenefit(@PathVariable Long id,
+            @PathVariable Long benefitId,
+            @Valid @RequestBody UpdateCommerceBenefitRequest request) {
+        BenefitResponse benefit = updateCommerceBenefitUseCase.execute(id, benefitId, request);
+        return ResponseEntity.ok(benefit);
+    }
+
+    @DeleteMapping("/{id}/benefits/{benefitId}")
+    @PreAuthorize("hasRole('Administrador')")
+    @Operation(summary = "Delete commerce benefit", description = "Delete a benefit configuration for a commerce")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Benefit deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Commerce or benefit not found")
+    })
+    public ResponseEntity<Void> deleteCommerceBenefit(@PathVariable Long id, @PathVariable Long benefitId) {
+        deleteCommerceBenefitUseCase.execute(id, benefitId);
+        return ResponseEntity.noContent().build();
     }
 }

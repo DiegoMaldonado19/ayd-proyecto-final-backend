@@ -190,11 +190,19 @@ class BlobStorageServiceImplTest {
 
     @Test
     void getFileUrl_ShouldReturnCorrectUrl() {
+        // Arrange
+        String expectedUrl = "https://" + ACCOUNT_NAME + ".blob.core.windows.net/" + CONTAINER_NAME + "/" + BLOB_NAME;
+        when(blobServiceClient.getBlobContainerClient(CONTAINER_NAME)).thenReturn(blobContainerClient);
+        when(blobContainerClient.getBlobClient(BLOB_NAME)).thenReturn(blobClient);
+        when(blobClient.getBlobUrl()).thenReturn(expectedUrl);
+
         // Act
         String result = blobStorageService.getFileUrl(CONTAINER_NAME, BLOB_NAME);
 
         // Assert
-        assertThat(result)
-                .isEqualTo("https://" + ACCOUNT_NAME + ".blob.core.windows.net/" + CONTAINER_NAME + "/" + BLOB_NAME);
+        assertThat(result).isEqualTo(expectedUrl);
+        verify(blobServiceClient).getBlobContainerClient(CONTAINER_NAME);
+        verify(blobContainerClient).getBlobClient(BLOB_NAME);
+        verify(blobClient).getBlobUrl();
     }
 }

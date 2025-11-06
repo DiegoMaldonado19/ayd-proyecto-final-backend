@@ -6,6 +6,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.models.BlobStorageException;
+import com.azure.storage.blob.models.PublicAccessType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,8 +116,9 @@ public class BlobStorageServiceImpl implements BlobStorageService {
 
     @Override
     public String getFileUrl(String containerName, String blobName) {
-        return String.format("https://%s.blob.core.windows.net/%s/%s",
-                accountName, containerName, blobName);
+        BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+        return blobClient.getBlobUrl();
     }
 
     private BlobContainerClient getOrCreateContainer(String containerName) {
@@ -125,6 +127,10 @@ public class BlobStorageServiceImpl implements BlobStorageService {
         if (!containerClient.exists()) {
             log.info("Container does not exist, creating: {}", containerName);
             containerClient.create();
+
+            // Set public access level to allow anonymous read access to blobs
+            containerClient.setAccessPolicy(PublicAccessType.BLOB, null);
+            log.info("Container created with public blob access: {}", containerName);
         }
 
         return containerClient;
