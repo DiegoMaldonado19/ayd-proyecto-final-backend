@@ -6,10 +6,12 @@ import com.ayd.parkcontrol.application.mapper.PlateChangeRequestDtoMapper;
 import com.ayd.parkcontrol.application.port.notification.EmailService;
 import com.ayd.parkcontrol.domain.exception.InvalidPlateChangeStatusException;
 import com.ayd.parkcontrol.domain.exception.PlateChangeRequestNotFoundException;
+import com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge;
 import com.ayd.parkcontrol.domain.repository.ChangeRequestEvidenceRepository;
 import com.ayd.parkcontrol.domain.repository.PlateChangeRequestRepository;
 import com.ayd.parkcontrol.domain.repository.SubscriptionRepository;
 import com.ayd.parkcontrol.domain.repository.UserRepository;
+import com.ayd.parkcontrol.domain.service.PlateChangeChargeCalculationService;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaChangeRequestStatusRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaPlateChangeReasonRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class ApprovePlateChangeRequestUseCase {
     private final JpaChangeRequestStatusRepository statusRepository;
     private final PlateChangeRequestDtoMapper mapper;
     private final EmailService emailService;
+    private final PlateChangeChargeCalculationService chargeCalculationService;
 
     @Transactional
     public PlateChangeRequestResponse execute(Long id, ApprovePlateChangeRequest request) {
@@ -61,6 +64,44 @@ public class ApprovePlateChangeRequestUseCase {
         plateChangeRequest.setReviewedAt(LocalDateTime.now());
         plateChangeRequest.setReviewNotes(request.getReview_notes());
 
+        AdministrativeCharge charge;
+        if (Boolean.TRUE.equals(request.getApply_administrative_charge())
+                && request.getAdministrative_charge_amount() != null) {
+            log.info("Applying manual administrative charge: {} - {}",
+                    request.getAdministrative_charge_amount(),
+                    request.getAdministrative_charge_reason());
+            charge = AdministrativeCharge.builder()
+                    .amount(request.getAdministrative_charge_amount())
+                    .reason(request.getAdministrative_charge_reason() != null
+                            ? request.getAdministrative_charge_reason()
+                            : "Cargo administrativo manual")
+                    .reasonCode("MANUAL_CHARGE")
+                    .build();
+        } else {
+            AdministrativeCharge timeBasedCharge = chargeCalculationService.calculateCharge(
+                    plateChangeRequest.getSubscriptionId(),
+                    plateChangeRequest.getReasonId(),
+                    LocalDateTime.now());
+
+            AdministrativeCharge rejectionBasedCharge = chargeCalculationService.calculateChargeForRejectedRequests(
+                    plateChangeRequest.getSubscriptionId());
+
+            charge = chargeCalculationService.combineCharges(timeBasedCharge, rejectionBasedCharge);
+            log.info("Calculated administrative charge: {} - {}", charge.getAmount(), charge.getReason());
+        }
+
+        if (charge.hasCharge()) {
+            plateChangeRequest.setHasAdministrativeCharge(true);
+            plateChangeRequest.setAdministrativeChargeAmount(charge.getAmount());
+            plateChangeRequest.setAdministrativeChargeReason(charge.getReason());
+            log.info("Administrative charge applied: ${} - {}", charge.getAmount(), charge.getReason());
+        } else {
+            plateChangeRequest.setHasAdministrativeCharge(false);
+            plateChangeRequest.setAdministrativeChargeAmount(null);
+            plateChangeRequest.setAdministrativeChargeReason(null);
+            log.info("No administrative charge applied");
+        }
+
         var savedRequest = plateChangeRequestRepository.save(plateChangeRequest);
 
         var subscription = subscriptionRepository.findById(savedRequest.getSubscriptionId()).orElse(null);
@@ -84,15 +125,15 @@ public class ApprovePlateChangeRequestUseCase {
         // Enviar notificación por email al usuario
         if (userEmail != null) {
             try {
-                String oldPlate = subscription != null ? 
-                    (savedRequest.getOldLicensePlate() != null ? savedRequest.getOldLicensePlate() : "N/A") : "N/A";
+                String oldPlate = subscription != null
+                        ? (savedRequest.getOldLicensePlate() != null ? savedRequest.getOldLicensePlate() : "N/A")
+                        : "N/A";
                 emailService.sendPlateChangeApprovedNotification(
-                    userEmail, 
-                    userName, 
-                    oldPlate,
-                    savedRequest.getNewLicensePlate(),
-                    savedRequest.getReviewNotes()
-                );
+                        userEmail,
+                        userName,
+                        oldPlate,
+                        savedRequest.getNewLicensePlate(),
+                        savedRequest.getReviewNotes());
                 log.info("Approval notification sent to user: {}", userEmail);
             } catch (Exception e) {
                 log.error("Error sending approval notification to user: {}", userEmail, e);

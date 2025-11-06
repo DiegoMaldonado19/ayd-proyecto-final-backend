@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -50,6 +51,15 @@ public class PlateChangeRequestEntity {
     @Column(name = "review_notes", length = 500)
     private String reviewNotes;
 
+    @Column(name = "has_administrative_charge", nullable = false)
+    private Boolean hasAdministrativeCharge;
+
+    @Column(name = "administrative_charge_amount", precision = 10, scale = 2)
+    private BigDecimal administrativeChargeAmount;
+
+    @Column(name = "administrative_charge_reason", length = 500)
+    private String administrativeChargeReason;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -60,6 +70,9 @@ public class PlateChangeRequestEntity {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (hasAdministrativeCharge == null) {
+            hasAdministrativeCharge = false;
+        }
     }
 
     @PreUpdate
