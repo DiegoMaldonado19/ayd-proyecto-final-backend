@@ -49,6 +49,9 @@ public class SecurityConfig {
                         .requestMatchers("/auth/refresh").permitAll()
                         .requestMatchers("/auth/password/reset").permitAll()
 
+                        // Public subscription plans endpoint (for clients to view available plans)
+                        .requestMatchers(HttpMethod.GET, "/subscription-plans").permitAll()
+
                         // Public Swagger/OpenAPI documentation
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()

@@ -10,6 +10,8 @@ import com.ayd.parkcontrol.domain.repository.SubscriptionPlanRepository;
 import com.ayd.parkcontrol.domain.repository.SubscriptionRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaRateBaseHistoryRepository;
 import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaSubscriptionStatusTypeRepository;
+import com.ayd.parkcontrol.infrastructure.persistence.repository.JpaUserRepository;
+import com.ayd.parkcontrol.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -29,6 +31,7 @@ public class PurchaseSubscriptionUseCase {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final JpaRateBaseHistoryRepository rateBaseRepository;
     private final JpaSubscriptionStatusTypeRepository statusTypeRepository;
+    private final JpaUserRepository jpaUserRepository;
     private final SubscriptionDtoMapper mapper;
 
     @Transactional
@@ -83,16 +86,24 @@ public class PurchaseSubscriptionUseCase {
     @Transactional
     public SubscriptionResponse executeForCurrentUser(PurchaseSubscriptionRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
-        log.debug("Purchasing subscription for current user: {}", email);
+        Long userId = getUserIdFromAuthentication(authentication);
 
-        Long userId = getUserIdFromEmail(email);
+        log.debug("Purchasing subscription for user ID: {} (email: {})", userId, authentication.getName());
 
         return execute(request, userId);
     }
 
-    private Long getUserIdFromEmail(String email) {
-        return 1L;
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        // Try to get user ID from CustomUserDetails first (most efficient)
+        if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return userDetails.getUserId();
+        }
+
+        // Fallback: get user by email from database
+        String email = authentication.getName();
+        return jpaUserRepository.findByEmail(email)
+                .map(user -> user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
     }
 }
