@@ -28,4 +28,14 @@ public interface JpaPlateChangeRequestRepository extends JpaRepository<PlateChan
 
     @Query("SELECT p FROM PlateChangeRequestEntity p ORDER BY p.createdAt DESC")
     List<PlateChangeRequestEntity> findAllOrderByCreatedAtDesc();
+
+    @Query("SELECT p FROM PlateChangeRequestEntity p WHERE p.subscriptionId = :subscriptionId AND p.statusId = :statusId ORDER BY p.reviewedAt DESC")
+    List<PlateChangeRequestEntity> findBySubscriptionIdAndStatusIdOrderByReviewedAtDesc(
+            @Param("subscriptionId") Long subscriptionId,
+            @Param("statusId") Integer statusId);
+
+    @Query("SELECT COUNT(p) FROM PlateChangeRequestEntity p WHERE p.subscriptionId = :subscriptionId AND p.statusId = :statusId")
+    long countBySubscriptionIdAndStatusId(
+            @Param("subscriptionId") Long subscriptionId,
+            @Param("statusId") Integer statusId);
 }

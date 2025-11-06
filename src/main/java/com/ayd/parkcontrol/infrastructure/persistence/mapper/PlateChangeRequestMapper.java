@@ -24,6 +24,9 @@ public class PlateChangeRequestMapper {
                 .reviewedBy(domain.getReviewedBy())
                 .reviewedAt(domain.getReviewedAt())
                 .reviewNotes(domain.getReviewNotes())
+                .hasAdministrativeCharge(domain.getHasAdministrativeCharge())
+                .administrativeChargeAmount(domain.getAdministrativeChargeAmount())
+                .administrativeChargeReason(domain.getAdministrativeChargeReason())
                 .createdAt(domain.getCreatedAt())
                 .updatedAt(domain.getUpdatedAt())
                 .build();
@@ -46,6 +49,9 @@ public class PlateChangeRequestMapper {
                 .reviewedBy(entity.getReviewedBy())
                 .reviewedAt(entity.getReviewedAt())
                 .reviewNotes(entity.getReviewNotes())
+                .hasAdministrativeCharge(entity.getHasAdministrativeCharge())
+                .administrativeChargeAmount(entity.getAdministrativeChargeAmount())
+                .administrativeChargeReason(entity.getAdministrativeChargeReason())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
