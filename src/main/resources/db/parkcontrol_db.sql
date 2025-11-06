@@ -508,6 +508,9 @@ CREATE TABLE plate_change_requests (
     reviewed_by BIGINT NULL,
     reviewed_at DATETIME NULL,
     review_notes VARCHAR(500),
+    has_administrative_charge BOOLEAN DEFAULT FALSE,
+    administrative_charge_amount DECIMAL(10,2) NULL,
+    administrative_charge_reason VARCHAR(500) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_plate_change_subscription FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -521,7 +524,8 @@ CREATE TABLE plate_change_requests (
     INDEX idx_subscription_status (subscription_id, status_id),
     CONSTRAINT chk_old_plate_format CHECK (old_license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
     CONSTRAINT chk_new_plate_format CHECK (new_license_plate REGEXP '^[A-Z]{1,3}-?[0-9]{3,4}$|^[A-Z]{1,3}[0-9]{3,4}$|^P-[0-9]{5,6}$'),
-    CONSTRAINT chk_different_plates CHECK (old_license_plate != new_license_plate)
+    CONSTRAINT chk_different_plates CHECK (old_license_plate != new_license_plate),
+    CONSTRAINT chk_administrative_charge_amount CHECK (administrative_charge_amount IS NULL OR administrative_charge_amount >= 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE plate_change_files (
@@ -551,6 +555,19 @@ CREATE TABLE change_request_evidences (
     INDEX idx_document_type_id (document_type_id),
     INDEX idx_uploaded_at (uploaded_at),
     CONSTRAINT chk_file_size_positive CHECK (file_size IS NULL OR file_size > 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE administrative_charge_config (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    reason_code VARCHAR(30) NOT NULL UNIQUE,
+    description VARCHAR(255) NOT NULL,
+    charge_amount DECIMAL(10,2) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT chk_charge_positive CHECK (charge_amount >= 0),
+    INDEX idx_reason_code (reason_code),
+    INDEX idx_is_active (is_active)
 ) ENGINE=InnoDB;
 
 CREATE TABLE temporal_permits (

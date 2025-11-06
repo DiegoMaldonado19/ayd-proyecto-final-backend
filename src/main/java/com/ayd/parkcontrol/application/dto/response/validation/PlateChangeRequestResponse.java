@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -74,7 +75,16 @@ public class PlateChangeRequestResponse {
 
     @Schema(description = "Cantidad de evidencias adjuntas", example = "3")
     private Long evidence_count;
-    
+
     @Schema(description = "Lista de evidencias adjuntas")
     private List<EvidenceResponse> evidences;
+
+    @Schema(description = "Indica si se aplicó cargo administrativo", example = "false")
+    private Boolean has_administrative_charge;
+
+    @Schema(description = "Monto del cargo administrativo", example = "25.00")
+    private BigDecimal administrative_charge_amount;
+
+    @Schema(description = "Razón del cargo administrativo", example = "Segundo cambio en menos de 12 meses")
+    private String administrative_charge_reason;
 }

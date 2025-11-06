@@ -36,214 +36,245 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ApprovePlateChangeRequestUseCaseTest {
 
-    @Mock
-    private PlateChangeRequestRepository plateChangeRequestRepository;
+        @Mock
+        private PlateChangeRequestRepository plateChangeRequestRepository;
 
-    @Mock
-    private SubscriptionRepository subscriptionRepository;
+        @Mock
+        private SubscriptionRepository subscriptionRepository;
 
-    @Mock
-    private UserRepository userRepository;
+        @Mock
+        private UserRepository userRepository;
 
-    @Mock
-    private ChangeRequestEvidenceRepository evidenceRepository;
+        @Mock
+        private ChangeRequestEvidenceRepository evidenceRepository;
 
-    @Mock
-    private JpaPlateChangeReasonRepository reasonRepository;
+        @Mock
+        private JpaPlateChangeReasonRepository reasonRepository;
 
-    @Mock
-    private JpaChangeRequestStatusRepository statusRepository;
+        @Mock
+        private JpaChangeRequestStatusRepository statusRepository;
 
-    @Mock
-    private PlateChangeRequestDtoMapper mapper;
+        @Mock
+        private PlateChangeRequestDtoMapper mapper;
 
-    @Mock
-    private SecurityContext securityContext;
+        @Mock
+        private SecurityContext securityContext;
 
-    @Mock
-    private Authentication authentication;
+        @Mock
+        private Authentication authentication;
 
-    @Mock
-    private com.ayd.parkcontrol.application.port.notification.EmailService emailService;
+        @Mock
+        private com.ayd.parkcontrol.application.port.notification.EmailService emailService;
 
-    @InjectMocks
-    private ApprovePlateChangeRequestUseCase approvePlateChangeRequestUseCase;
+        @Mock
+        private com.ayd.parkcontrol.domain.service.PlateChangeChargeCalculationService chargeCalculationService;
 
-    private ApprovePlateChangeRequest approveRequest;
-    private PlateChangeRequest mockPlateChangeRequest;
-    private Subscription mockSubscription;
-    private User mockReviewer;
-    private PlateChangeRequestResponse mockResponse;
+        @InjectMocks
+        private ApprovePlateChangeRequestUseCase approvePlateChangeRequestUseCase;
 
-    @BeforeEach
-    void setUp() {
-        approveRequest = ApprovePlateChangeRequest.builder()
-                .review_notes("Documentación verificada")
-                .build();
+        private ApprovePlateChangeRequest approveRequest;
+        private PlateChangeRequest mockPlateChangeRequest;
+        private Subscription mockSubscription;
+        private User mockReviewer;
+        private PlateChangeRequestResponse mockResponse;
 
-        mockPlateChangeRequest = PlateChangeRequest.builder()
-                .id(1L)
-                .subscriptionId(1L)
-                .userId(1L)
-                .oldLicensePlate("P-123456")
-                .newLicensePlate("P-654321")
-                .reasonId(1)
-                .statusId(1)
-                .build();
+        @BeforeEach
+        void setUp() {
+                approveRequest = ApprovePlateChangeRequest.builder()
+                                .review_notes("Documentación verificada")
+                                .build();
 
-        mockSubscription = Subscription.builder()
-                .id(1L)
-                .licensePlate("P-123456")
-                .build();
+                mockPlateChangeRequest = PlateChangeRequest.builder()
+                                .id(1L)
+                                .subscriptionId(1L)
+                                .userId(1L)
+                                .oldLicensePlate("P-123456")
+                                .newLicensePlate("P-654321")
+                                .reasonId(1)
+                                .statusId(1)
+                                .build();
 
-        mockReviewer = User.builder()
-                .id(2L)
-                .email("backoffice@parkcontrol.com")
-                .firstName("Carlos")
-                .lastName("Rodríguez")
-                .build();
+                mockSubscription = Subscription.builder()
+                                .id(1L)
+                                .licensePlate("P-123456")
+                                .build();
 
-        mockResponse = PlateChangeRequestResponse.builder()
-                .id(1L)
-                .status_code("APPROVED")
-                .status_name("Aprobado")
-                .build();
-    }
+                mockReviewer = User.builder()
+                                .id(2L)
+                                .email("backoffice@parkcontrol.com")
+                                .firstName("Carlos")
+                                .lastName("Rodríguez")
+                                .build();
 
-    @Test
-    void execute_shouldApproveRequest_whenValidPendingRequest() {
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("backoffice@parkcontrol.com");
+                mockResponse = PlateChangeRequestResponse.builder()
+                                .id(1L)
+                                .status_code("APPROVED")
+                                .status_name("Aprobado")
+                                .build();
+        }
 
-        when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
+        @Test
+        void execute_shouldApproveRequest_whenValidPendingRequest() {
+                SecurityContextHolder.setContext(securityContext);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getName()).thenReturn("backoffice@parkcontrol.com");
 
-        ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
-        pendingStatus.setId(1);
-        pendingStatus.setCode("PENDING");
-        when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
+                when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
 
-        ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
-        approvedStatus.setId(2);
-        approvedStatus.setCode("APPROVED");
-        approvedStatus.setName("Aprobado");
-        when(statusRepository.findByCode("APPROVED")).thenReturn(Optional.of(approvedStatus));
+                ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
+                pendingStatus.setId(1);
+                pendingStatus.setCode("PENDING");
+                when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
 
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockReviewer));
-        when(plateChangeRequestRepository.save(any(PlateChangeRequest.class))).thenReturn(mockPlateChangeRequest);
-        when(subscriptionRepository.findById(anyLong())).thenReturn(Optional.of(mockSubscription));
-        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(mockSubscription);
+                ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
+                approvedStatus.setId(2);
+                approvedStatus.setCode("APPROVED");
+                approvedStatus.setName("Aprobado");
+                when(statusRepository.findByCode("APPROVED")).thenReturn(Optional.of(approvedStatus));
 
-        PlateChangeReasonEntity reasonEntity = new PlateChangeReasonEntity();
-        reasonEntity.setName("Robo");
-        when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
+                when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockReviewer));
+                when(plateChangeRequestRepository.save(any(PlateChangeRequest.class)))
+                                .thenReturn(mockPlateChangeRequest);
+                when(subscriptionRepository.findById(anyLong())).thenReturn(Optional.of(mockSubscription));
+                when(subscriptionRepository.save(any(Subscription.class))).thenReturn(mockSubscription);
 
-        User requestUser = User.builder()
-                .id(1L)
-                .firstName("Juan")
-                .lastName("Pérez")
-                .email("juan.perez@example.com")
-                .build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
-        when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
-        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
-                .thenReturn(mockResponse);
+                PlateChangeReasonEntity reasonEntity = new PlateChangeReasonEntity();
+                reasonEntity.setName("Robo");
+                when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
 
-        PlateChangeRequestResponse result = approvePlateChangeRequestUseCase.execute(1L, approveRequest);
+                User requestUser = User.builder()
+                                .id(1L)
+                                .firstName("Juan")
+                                .lastName("Pérez")
+                                .email("juan.perez@example.com")
+                                .build();
+                when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
+                when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus_code()).isEqualTo("APPROVED");
+                when(chargeCalculationService.calculateCharge(anyLong(), anyInt(), any()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
+                when(chargeCalculationService.calculateChargeForRejectedRequests(anyLong()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
+                when(chargeCalculationService.combineCharges(any(), any()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
 
-        verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
-        verify(subscriptionRepository).save(argThat(subscription -> subscription.getLicensePlate().equals("P-654321")));
-        verify(emailService).sendPlateChangeApprovedNotification(
-                eq("juan.perez@example.com"),
-                eq("Juan Pérez"),
-                eq("P-123456"),
-                eq("P-654321"),
-                eq("Documentación verificada")
-        );
-    }
+                when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(),
+                                anyLong()))
+                                .thenReturn(mockResponse);
 
-    @Test
-    void execute_shouldThrowPlateChangeRequestNotFoundException_whenRequestDoesNotExist() {
-        when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
+                PlateChangeRequestResponse result = approvePlateChangeRequestUseCase.execute(1L, approveRequest);
 
-        assertThatThrownBy(() -> approvePlateChangeRequestUseCase.execute(1L, approveRequest))
-                .isInstanceOf(PlateChangeRequestNotFoundException.class);
+                assertThat(result).isNotNull();
+                assertThat(result.getStatus_code()).isEqualTo("APPROVED");
 
-        verify(plateChangeRequestRepository).findById(1L);
-        verify(plateChangeRequestRepository, never()).save(any());
-    }
+                verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
+                verify(subscriptionRepository)
+                                .save(argThat(subscription -> subscription.getLicensePlate().equals("P-654321")));
+                verify(emailService).sendPlateChangeApprovedNotification(
+                                eq("juan.perez@example.com"),
+                                eq("Juan Pérez"),
+                                eq("P-123456"),
+                                eq("P-654321"),
+                                eq("Documentación verificada"));
+        }
 
-    @Test
-    void execute_shouldThrowInvalidPlateChangeStatusException_whenRequestNotPending() {
-        mockPlateChangeRequest.setStatusId(2);
-        when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
+        @Test
+        void execute_shouldThrowPlateChangeRequestNotFoundException_whenRequestDoesNotExist() {
+                when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
-        approvedStatus.setId(2);
-        approvedStatus.setCode("APPROVED");
-        when(statusRepository.findById(2)).thenReturn(Optional.of(approvedStatus));
+                assertThatThrownBy(() -> approvePlateChangeRequestUseCase.execute(1L, approveRequest))
+                                .isInstanceOf(PlateChangeRequestNotFoundException.class);
 
-        assertThatThrownBy(() -> approvePlateChangeRequestUseCase.execute(1L, approveRequest))
-                .isInstanceOf(InvalidPlateChangeStatusException.class)
-                .hasMessageContaining("Solo se pueden aprobar solicitudes con estado PENDIENTE");
+                verify(plateChangeRequestRepository).findById(1L);
+                verify(plateChangeRequestRepository, never()).save(any());
+        }
 
-        verify(plateChangeRequestRepository, never()).save(any());
-    }
+        @Test
+        void execute_shouldThrowInvalidPlateChangeStatusException_whenRequestNotPending() {
+                mockPlateChangeRequest.setStatusId(2);
+                when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
 
-    @Test
-    void execute_shouldCompleteApproval_whenEmailNotificationFails() {
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("backoffice@parkcontrol.com");
+                ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
+                approvedStatus.setId(2);
+                approvedStatus.setCode("APPROVED");
+                when(statusRepository.findById(2)).thenReturn(Optional.of(approvedStatus));
 
-        when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
+                assertThatThrownBy(() -> approvePlateChangeRequestUseCase.execute(1L, approveRequest))
+                                .isInstanceOf(InvalidPlateChangeStatusException.class)
+                                .hasMessageContaining("Solo se pueden aprobar solicitudes con estado PENDIENTE");
 
-        ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
-        pendingStatus.setId(1);
-        pendingStatus.setCode("PENDING");
-        when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
+                verify(plateChangeRequestRepository, never()).save(any());
+        }
 
-        ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
-        approvedStatus.setId(2);
-        approvedStatus.setCode("APPROVED");
-        approvedStatus.setName("Aprobado");
-        when(statusRepository.findByCode("APPROVED")).thenReturn(Optional.of(approvedStatus));
+        @Test
+        void execute_shouldCompleteApproval_whenEmailNotificationFails() {
+                SecurityContextHolder.setContext(securityContext);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getName()).thenReturn("backoffice@parkcontrol.com");
 
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockReviewer));
-        when(plateChangeRequestRepository.save(any(PlateChangeRequest.class))).thenReturn(mockPlateChangeRequest);
-        when(subscriptionRepository.findById(anyLong())).thenReturn(Optional.of(mockSubscription));
-        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(mockSubscription);
+                when(plateChangeRequestRepository.findById(anyLong())).thenReturn(Optional.of(mockPlateChangeRequest));
 
-        PlateChangeReasonEntity reasonEntity = new PlateChangeReasonEntity();
-        reasonEntity.setName("Robo");
-        when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
+                ChangeRequestStatusEntity pendingStatus = new ChangeRequestStatusEntity();
+                pendingStatus.setId(1);
+                pendingStatus.setCode("PENDING");
+                when(statusRepository.findById(1)).thenReturn(Optional.of(pendingStatus));
 
-        User requestUser = User.builder()
-                .id(1L)
-                .firstName("Juan")
-                .lastName("Pérez")
-                .email("juan.perez@example.com")
-                .build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
-        when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
-        when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(), anyLong()))
-                .thenReturn(mockResponse);
+                ChangeRequestStatusEntity approvedStatus = new ChangeRequestStatusEntity();
+                approvedStatus.setId(2);
+                approvedStatus.setCode("APPROVED");
+                approvedStatus.setName("Aprobado");
+                when(statusRepository.findByCode("APPROVED")).thenReturn(Optional.of(approvedStatus));
 
-        // Simular fallo en el envío del email
-        doThrow(new RuntimeException("Email service unavailable"))
-                .when(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
+                when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockReviewer));
+                when(plateChangeRequestRepository.save(any(PlateChangeRequest.class)))
+                                .thenReturn(mockPlateChangeRequest);
+                when(subscriptionRepository.findById(anyLong())).thenReturn(Optional.of(mockSubscription));
+                when(subscriptionRepository.save(any(Subscription.class))).thenReturn(mockSubscription);
 
-        PlateChangeRequestResponse result = approvePlateChangeRequestUseCase.execute(1L, approveRequest);
+                PlateChangeReasonEntity reasonEntity = new PlateChangeReasonEntity();
+                reasonEntity.setName("Robo");
+                when(reasonRepository.findById(anyInt())).thenReturn(Optional.of(reasonEntity));
 
-        // El proceso debe completarse exitosamente a pesar del fallo en la notificación
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus_code()).isEqualTo("APPROVED");
+                User requestUser = User.builder()
+                                .id(1L)
+                                .firstName("Juan")
+                                .lastName("Pérez")
+                                .email("juan.perez@example.com")
+                                .build();
+                when(userRepository.findById(1L)).thenReturn(Optional.of(requestUser));
+                when(evidenceRepository.countByChangeRequestId(anyLong())).thenReturn(2L);
 
-        verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
-        verify(subscriptionRepository).save(any(Subscription.class));
-        verify(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(), anyString(), anyString(), anyString());
-    }
+                when(chargeCalculationService.calculateCharge(anyLong(), anyInt(), any()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
+                when(chargeCalculationService.calculateChargeForRejectedRequests(anyLong()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
+                when(chargeCalculationService.combineCharges(any(), any()))
+                                .thenReturn(com.ayd.parkcontrol.domain.model.validation.AdministrativeCharge
+                                                .noCharge());
+
+                when(mapper.toResponse(any(), anyString(), anyString(), anyString(), anyString(), anyString(),
+                                anyLong()))
+                                .thenReturn(mockResponse);
+
+                // Simular fallo en el envío del email
+                doThrow(new RuntimeException("Email service unavailable"))
+                                .when(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(),
+                                                anyString(), anyString(), anyString());
+
+                PlateChangeRequestResponse result = approvePlateChangeRequestUseCase.execute(1L, approveRequest);
+
+                // El proceso debe completarse exitosamente a pesar del fallo en la notificación
+                assertThat(result).isNotNull();
+                assertThat(result.getStatus_code()).isEqualTo("APPROVED");
+
+                verify(plateChangeRequestRepository).save(any(PlateChangeRequest.class));
+                verify(subscriptionRepository).save(any(Subscription.class));
+                verify(emailService).sendPlateChangeApprovedNotification(anyString(), anyString(), anyString(),
+                                anyString(), anyString());
+        }
 }

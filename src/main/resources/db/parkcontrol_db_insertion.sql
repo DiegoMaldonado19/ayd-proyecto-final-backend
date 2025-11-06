@@ -202,8 +202,15 @@ INSERT INTO incident_files (incident_id, stored_file_id) VALUES
 (1, 2),
 (1, 3);
 
-INSERT INTO plate_change_requests (subscription_id, user_id, old_license_plate, new_license_plate, reason_id, notes, status_id, reviewed_by, reviewed_at, review_notes) VALUES
-(5, 10, 'MNO345', 'NEW-789', 1, 'Solicitud de cambio de placa por robo', 1, NULL, NULL, NULL);
+INSERT INTO administrative_charge_config (reason_code, description, charge_amount, is_active) VALUES
+('SECOND_CHANGE_YEAR', 'Segundo cambio de placa en menos de 12 meses', 50.00, TRUE),
+('REPEATED_REQUESTS', 'Más de 2 solicitudes rechazadas previas', 25.00, TRUE),
+('EMERGENCY_PROCESSING', 'Procesamiento urgente (menos de 24 horas)', 100.00, TRUE),
+('FIRST_CHANGE_6_TO_12_MONTHS', 'Primer cambio entre 6 y 12 meses', 25.00, TRUE),
+('NO_CHARGE', 'Sin cargo administrativo aplicable', 0.00, TRUE);
+
+INSERT INTO plate_change_requests (subscription_id, user_id, old_license_plate, new_license_plate, reason_id, notes, status_id, reviewed_by, reviewed_at, review_notes, has_administrative_charge, administrative_charge_amount, administrative_charge_reason) VALUES
+(5, 10, 'MNO345', 'NEW-789', 1, 'Solicitud de cambio de placa por robo', 1, NULL, NULL, NULL, FALSE, NULL, NULL);
 
 INSERT INTO change_request_evidences (change_request_id, document_type_id, file_name, file_url, file_size, uploaded_by, uploaded_at) VALUES
 (1, 3, 'denuncia-robo-mno345.pdf', 'https://parkcontrolstorage.blob.core.windows.net/plate-change-evidence/2025/10/denuncia-robo-mno345.pdf', 456789, 'Lucia Fernandez', '2025-10-15 10:30:00'),

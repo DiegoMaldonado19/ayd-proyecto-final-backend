@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -24,6 +25,9 @@ public class PlateChangeRequest {
     private Long reviewedBy;
     private LocalDateTime reviewedAt;
     private String reviewNotes;
+    private Boolean hasAdministrativeCharge;
+    private BigDecimal administrativeChargeAmount;
+    private String administrativeChargeReason;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
